@@ -98,14 +98,21 @@ void loop() {
     
     unsigned long now=millis();
     
-    switch(random(3)) {
+    switch(random(10)) {
     case 0:
       Apple(1000);
       break;
     case 1:
+    case 2:
+    case 3:
       Rain(now,5000);
       break;
-    case 2:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
       Life();
       break;
     }
@@ -117,36 +124,7 @@ void loop() {
       Banner(timeBuffer, 100, random(5));
       break;
     case 1:
-      LedSign::Clear();
-      
-      int x;
-      char text[2];
-      // hours on the top
-      itoa(hours,text,10);
-      if(hours >= 10) {
-	x = Font_Draw(text[0],1,0,MAXBRIGHT);
-	Font_Draw(text[1],x+1,0,MAXBRIGHT);
-      }
-      else {
-	x = Font_Draw(text[0],0,0,MAXBRIGHT);
-	Font_Draw(text[1],x,0,MAXBRIGHT);
-      }
-
-      // minutes on the bottom
-      itoa(minutes,text,10);
-      if(minutes < 10) {
-	x = Font_Draw(48, 0, 6, MAXBRIGHT);
-	Font_Draw(text[0], x, 6, MAXBRIGHT);
-      }
-      else if (minutes >=10 && minutes <=19) {
-	x = Font_Draw(text[0], 1, 6, MAXBRIGHT);
-	Font_Draw(text[1], x+1, 6, MAXBRIGHT);
-      }
-      else {
-	x = Font_Draw(text[0],0,6,MAXBRIGHT);
-	Font_Draw(text[1],x,6,MAXBRIGHT);
-      }
-      delay(3000);
+      DisplayTime(3000);
       break;
     }
   }
@@ -247,7 +225,13 @@ void Life() {
   
   while(1) {
     // Log every 20th frame to monitor for repeats
-    if( frame_number == 0 ) { log_current_frame(); }
+    if( frame_number == 0 ) { 
+      if(generation > 0) {
+	delay(350); // otherwise it just dumps into the time as soon as it finishes fading in
+	DisplayTime(3000);
+      }
+      log_current_frame(); 
+    }
     
     // generate the next generation
     generate_next_generation();
@@ -255,6 +239,7 @@ void Life() {
     // death due to still life
     // if there are no changes between the current generation and the next generation (still life), break out of the loop.
     if( current_equals_next() == 1 ) {
+      // do something here to fade it down to blank.
       for(int f=0; f<500; f++) {
 	draw_frame();
       }
@@ -274,7 +259,7 @@ void Life() {
     // ~ 500msec per generation.
     // Otherwise, fade to the next generation
     fade_to_next_frame(int(350/MAXBRIGHT));
-    delay(150);
+    delay(50);
     frame_number++;
     generation++;
     
@@ -309,20 +294,22 @@ void generate_next_generation(void){  //looks at current generation, writes to n
         if( (neighbors == 2) || (neighbors == 3) ){
           //Any live cell with two or three live neighbours lives on to the next generation.                                                            
 
+	  if(get_led_xy(x,y) > 2) { world[x][y][1] = (get_led_xy(x,y)-2); }
+	  else { world[x][y][1] = get_led_xy(x,y); }
+
+	  //
           world[x][y][1] = MAXBRIGHT;
         }
         if( neighbors > 3 ){
           //Any live cell with more than three live neighbours dies, as if by overcyding.                                                             
           world[x][y][1] = 0;
         }
-
       }
       else {
         //current cell is dead                                                                                                                          
         if( neighbors == 3 ){
           // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.                                               
           world[x][y][1] = MAXBRIGHT;
-	  
         }
         else {
           //stay dead for next generation                                                                                                               
@@ -337,6 +324,39 @@ char get_led_xy (char col, char row) {
   if(col < 0 | col > COLS-1) { return 0; }
   if(row < 0 | row > ROWS-1) { return 0;  }
   return world[col][row][0];
+}
+
+void DisplayTime(unsigned long int runtime) {
+  LedSign::Clear();
+  
+  int x;
+  char text[2];
+  // hours on the top
+  itoa(hours,text,10);
+  if(hours >= 10) {
+    x = Font_Draw(text[0],1,0,MAXBRIGHT);
+    Font_Draw(text[1],x+1,0,MAXBRIGHT);
+  }
+  else {
+    x = Font_Draw(text[0],0,0,MAXBRIGHT);
+    Font_Draw(text[1],x,0,MAXBRIGHT);
+  }
+  
+  // minutes on the bottom
+  itoa(minutes,text,10);
+  if(minutes < 10) {
+    x = Font_Draw(48, 0, 6, MAXBRIGHT);
+    Font_Draw(text[0], x, 6, MAXBRIGHT);
+  }
+  else if (minutes >=10 && minutes <=19) {
+    x = Font_Draw(text[0], 1, 6, MAXBRIGHT);
+    Font_Draw(text[1], x+1, 6, MAXBRIGHT);
+  }
+  else {
+    x = Font_Draw(text[0],0,6,MAXBRIGHT);
+    Font_Draw(text[1],x,6,MAXBRIGHT);
+  }
+  delay(runtime);
 }
 
 void setTime() {
