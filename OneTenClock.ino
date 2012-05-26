@@ -46,18 +46,18 @@ void setup() {
   LedSign::Init(GRAYSCALE);  //Initializes the screen
   Wire.begin();
 
-  Serial.begin(9600);
+  //  Serial.begin(9600);
 
-  pinMode(SET_BUTTON_PIN, INPUT); // A0
-  pinMode(INC_BUTTON_PIN, INPUT); // A1
-  digitalWrite(SET_BUTTON_PIN, HIGH); // enable the pullup on B0
-  digitalWrite(INC_BUTTON_PIN, HIGH); // ditto
+  pinMode(SET_BUTTON_PIN, INPUT_PULLUP); // A0
+  pinMode(INC_BUTTON_PIN, INPUT_PULLUP); // A1
+// deprecated in Arduino 1.0.1 - declare them as INPUT_PULLUP in pinMode now
+//  digitalWrite(SET_BUTTON_PIN, HIGH); // enable the pullup on B0
+//  digitalWrite(INC_BUTTON_PIN, HIGH); // ditto
   
   // let the clock seed our randomizer - seems to work
   RTC.readClock();
   randomSeed(RTC.getSeconds());
   updateTimeBuffer();
-
 }
 
 void loop() {
@@ -100,37 +100,58 @@ void loop() {
     
     switch(random(3)) {
     case 0:
-      Apple(5000);
+      Apple(1000);
       break;
     case 1:
       Rain(now,5000);
       break;
     case 2:
       Life();
-      unsigned long done = millis();
-      long diff = done-now;
-//      Serial.print("Runtime: ");
-//      Serial.print(diff);
-//      Serial.println("ms");
+      break;
     }
 
     updateTimeBuffer();
-    //    Banner(timeBuffer, 100);
 
-    LedSign::Clear();
-    
-    int x;
-    char text[2];
-    itoa(hours,text,10);
-    x = Font_Draw(text[0],0,0,MAXBRIGHT);
-    Font_Draw(text[1],x,0,MAXBRIGHT);
+    switch(random(2)) {
+    case 0:
+      Banner(timeBuffer, 100, random(5));
+      break;
+    case 1:
+      LedSign::Clear();
+      
+      int x;
+      char text[2];
+      // hours on the top
+      itoa(hours,text,10);
+      if(hours >= 10) {
+	x = Font_Draw(text[0],1,0,MAXBRIGHT);
+	Font_Draw(text[1],x+1,0,MAXBRIGHT);
+      }
+      else {
+	x = Font_Draw(text[0],0,0,MAXBRIGHT);
+	Font_Draw(text[1],x,0,MAXBRIGHT);
+      }
 
-    itoa(minutes,text,10);
-    x = Font_Draw(text[0],0,6,MAXBRIGHT);
-    Font_Draw(text[1],x,6,MAXBRIGHT);
-    delay(3000);
+      // minutes on the bottom
+      itoa(minutes,text,10);
+      if(minutes < 10) {
+	x = Font_Draw(48, 0, 6, MAXBRIGHT);
+	Font_Draw(text[0], x, 6, MAXBRIGHT);
+      }
+      else if (minutes >=10 && minutes <=19) {
+	x = Font_Draw(text[0], 1, 6, MAXBRIGHT);
+	Font_Draw(text[1], x+1, 6, MAXBRIGHT);
+      }
+      else {
+	x = Font_Draw(text[0],0,6,MAXBRIGHT);
+	Font_Draw(text[1],x,6,MAXBRIGHT);
+      }
+      delay(3000);
+      break;
+    }
   }
 }
+
 
 //--------------------------------------------------------------------------------
 // functions
@@ -152,9 +173,6 @@ void Apple(unsigned long runtime) {
   delay(200);
 }
 
-
-
-
 void initialize_frame_log() {
   for(int y=0; y < ROWS; y++) {
     for(int x=0; x < COLS; x++) {
@@ -162,6 +180,7 @@ void initialize_frame_log() {
     }
   }
 }
+
 void log_current_frame() {
   for(int y=0; y < ROWS; y++) {
     for(int x=0; x < COLS; x++) {
@@ -175,25 +194,13 @@ void set_random_next_frame(void) {
   resetDisplay();
   
   int density = random(40,80);
-
-//  Serial.print("Initial density: ");
-//  Serial.println(density);
-  
   for(int y=0; y<ROWS; y++) {
     for(int x=0; x<COLS; x++) {
       if(random(100) > density) {
-//	Serial.print(x);
-//	Serial.print(" ");
-//	Serial.print(y);
-//	Serial.print(" ");
-//	Serial.println("on");
 	world[x][y][1] = MAXBRIGHT;
       }
     }
   }
-//  world[1][1][1] = MAXBRIGHT;
-//  world[2][1][1] = MAXBRIGHT;
-//  world[3][1][1] = MAXBRIGHT;
 }
 
 char current_equals_next() {
@@ -220,7 +227,6 @@ int next_equals_logged_frame(){
 }
 
 void Life() {
-  //  Serial.println("PLaying life");
   int frame_number, generation;
   frame_number = 0;
   generation = 0;
@@ -245,21 +251,21 @@ void Life() {
     
     // generate the next generation
     generate_next_generation();
-    
+
+    // death due to still life
     // if there are no changes between the current generation and the next generation (still life), break out of the loop.
     if( current_equals_next() == 1 ) {
-      //      Serial.println("Death due to still life.");
-      for(int f=0; f<1500; f++) {
+      for(int f=0; f<500; f++) {
 	draw_frame();
       }
       break;
     }
     
+    // Death due to oscillator
     // If the next frame is the same as a frame from 20 generations ago, we're in a loop.
     if( next_equals_logged_frame() == 1 ) {
-      //      Serial.println("Death due to oscillator.");
       fade_to_next_frame(50);
-      for(int f = 0; f<1500; f++) {
+      for(int f = 0; f<500; f++) {
 	draw_frame();
       }
       break;
@@ -271,8 +277,6 @@ void Life() {
     delay(150);
     frame_number++;
     generation++;
-    
-    //    Serial.println(generation);
     
     if(frame_number == 20 ) {
       frame_number = 0;
@@ -360,7 +364,6 @@ void updateTimeBuffer() {
 }
 
 void resetDisplay() {
-  //  Serial.println("Resetting display...");
   for(int y = 0; y <=ROWS; y++) {
     for(int x = 0; x <=COLS; x++) {
       world[x][y][0] = 0;
@@ -371,7 +374,7 @@ void resetDisplay() {
 
 void processSetButton() {
   if((hours > 23) or (minutes > 59)) {
-    //    updateTimeBuffer();
+    updateTimeBuffer();
   }
 
   // debouncing;
@@ -384,7 +387,7 @@ void processSetButton() {
   isSettingHours   = !isSettingHours;
   isSettingMinutes = !isSettingMinutes;
 
-  resetDisplay();
+  //  resetDisplay();
   
   int x;
   char text[2];
@@ -392,20 +395,14 @@ void processSetButton() {
     LedSign::Clear();
     itoa(hours,text,10);
     x = Font_Draw(text[0],0,0,MAXBRIGHT);
-    if(x>=3)
-      Font_Draw(text[1],x-1,0,MAXBRIGHT);
-    else
-      Font_Draw(text[1],x,0,MAXBRIGHT);
+    Font_Draw(text[1],x,0,MAXBRIGHT);
     delay(10);
   }
   else {
     LedSign::Clear();
     itoa(minutes,text,10);
-    x = Font_Draw(text[0],0,0,MAXBRIGHT);
-    if(x>=3)
-      Font_Draw(text[1],x-1,0,MAXBRIGHT);
-    else
-      Font_Draw(text[1],x,0,MAXBRIGHT);
+    x = Font_Draw(text[0],0,6,MAXBRIGHT);
+    Font_Draw(text[1],x,6,MAXBRIGHT);
     delay(10);
   }
 }
@@ -413,7 +410,7 @@ void processSetButton() {
 //-----------------------------------------------------------
 void processIncButton() {
   if((hours > 23) or (minutes > 59)) {
-    //    updateTimeBuffer();
+    updateTimeBuffer();
   }
 
   // debouncing;
@@ -437,20 +434,14 @@ void processIncButton() {
     LedSign::Clear();
     itoa(hours,text,10);
     x = Font_Draw(text[0],0,0,MAXBRIGHT);
-    if(x>=3)
-      Font_Draw(text[1],x-1,0,MAXBRIGHT);
-    else
-      Font_Draw(text[1],x,0,MAXBRIGHT);
+    Font_Draw(text[1],x,0,MAXBRIGHT);
     delay(10);
   }
   else {
     LedSign::Clear();
     itoa(minutes,text,10);
-    x = Font_Draw(text[0],0,0,MAXBRIGHT);
-    if(x>=3)
-      Font_Draw(text[1],x-1,0,MAXBRIGHT);
-    else
-      Font_Draw(text[1],x,0,MAXBRIGHT);
+    x = Font_Draw(text[0],0,6,MAXBRIGHT);
+    Font_Draw(text[1],x,6,MAXBRIGHT);
     delay(10);
   }
 }
@@ -561,7 +552,7 @@ void draw_frame (void) {
  * @param speed is the inter-frame speed
  */
 //void Banner ( String str, int speed ) { // this works, hogs memory.
-void Banner ( char* str, int speed ) {
+void Banner ( char* str, int speed, int y) {
   // length is length(array)
   // width is the width of the array in pixels.
   // these can be unsigned - int8 might be too small
@@ -591,7 +582,7 @@ void Banner ( char* str, int speed ) {
     LedSign::Clear(); 
     // walk through the array, drawing letters where they belong.
     for(int i=0; i<length; i++) { 
-      x2 = Font_Draw(str[i],x,0,MAXBRIGHT);
+      x2 = Font_Draw(str[i],x,y,MAXBRIGHT);
       // sets the new xpos based off of the old xpos + the width of the 
       // current character.
       x+=x2;
