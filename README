@@ -1,0 +1,17 @@
+This code drives a 6x5 array of Charlieplexed LEDs using Jimmie Rodger's LoL
+Shield Charliplexing code.  The current target is a standalone board with an
+ATmega328 on it, but there's no reason it couldn't be hooked to an Arduino and
+run from there.
+
+The code also talks to a DS1307 RTC over I2C using Adafruit's DS1307 library at
+the moment.  I suspect that will change later on, but it's a simple library for
+reading the I2C bus and decoding the time.
+
+The 4x5 Font spreadsheets explain the font definition.  It's mostly based on
+Jason Kottke's Silkscreen with the Q mangled to not have a 6th row descender.
+The numbers are from the MixiClock described on the Wise Time with Arduino blog.
+
+http://kottke.org/plus/type/silkscreen/
+
+http://timewitharduino.blogspot.com/2012/01/mixiclock-4-digits-displayed-on-8x8-led.html
+
