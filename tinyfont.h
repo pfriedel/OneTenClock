@@ -1,14 +1,29 @@
 // define some bitmapped letters!  put them in program memory so you aren't using up valuable running memory.
-prog_uchar letters_48[] PROGMEM = /* 0 */ { 0,1, 0,2, 0,3, 1,0, 1,4, 2,1, 2,2, 2,3, 9,9 }; 
-prog_uchar letters_49[] PROGMEM = /* 1 */ { 0,0, 0,1, 0,2, 0,3, 0,4, 9,9 }; 
-prog_uchar letters_50[] PROGMEM = /* 2 */ { 0,0, 0,3, 0,4, 1,0, 1,2, 1,4, 2,1, 2,4, 9,9 }; 
-prog_uchar letters_51[] PROGMEM = /* 3 */ { 0,0, 0,4, 1,0, 1,2, 1,4, 2,0, 2,1, 2,2, 2,3, 2,3, 9,9 }; 
-prog_uchar letters_52[] PROGMEM = /* 4 */ { 0,0, 0,1, 0,2, 1,2, 2,1, 2,2, 2,3, 2,4, 9,9 }; 
-prog_uchar letters_53[] PROGMEM = /* 5 */ { 0,0, 0,1, 0,2, 0,4, 1,0, 1,2, 1,4, 2,0, 2,2, 2,3, 9,9 }; 
-prog_uchar letters_54[] PROGMEM = /* 6 */ { 0,1, 0,2, 0,3, 1,0, 1,2, 1,4, 2,0, 2,2, 2,3, 9,9 }; 
-prog_uchar letters_55[] PROGMEM = /* 7 */ { 0,0, 0,3, 0,4, 1,0, 1,2, 2,0, 2,1, 9,9 }; 
-prog_uchar letters_56[] PROGMEM = /* 8 */ { 0,0, 0,1, 0,3, 0,4, 1,0, 1,2, 1,4, 2,0, 2,1, 2,3, 2,4, 9,9 }; 
-prog_uchar letters_57[] PROGMEM = /* 9 */ { 0,1, 0,2, 0,4, 1,0, 1,2, 1,4, 2,1, 2,2, 2,3, 9,9 }; 
+//3 px wide
+//prog_uchar letters_48[] PROGMEM = /* 0 */ { 0,1, 0,2, 0,3, 1,0, 1,4, 2,1, 2,2, 2,3, 9,9 }; 
+//prog_uchar letters_49[] PROGMEM = /* 1 */ { 0,0, 0,1, 0,2, 0,3, 0,4, 9,9 }; 
+//prog_uchar letters_50[] PROGMEM = /* 2 */ { 0,0, 0,3, 0,4, 1,0, 1,2, 1,4, 2,1, 2,4, 9,9 }; 
+//prog_uchar letters_51[] PROGMEM = /* 3 */ { 0,0, 0,4, 1,0, 1,2, 1,4, 2,0, 2,1, 2,2, 2,3, 2,3, 9,9 }; 
+//prog_uchar letters_52[] PROGMEM = /* 4 */ { 0,0, 0,1, 0,2, 1,2, 2,1, 2,2, 2,3, 2,4, 9,9 }; 
+//prog_uchar letters_53[] PROGMEM = /* 5 */ { 0,0, 0,1, 0,2, 0,4, 1,0, 1,2, 1,4, 2,0, 2,2, 2,3, 9,9 }; 
+//prog_uchar letters_54[] PROGMEM = /* 6 */ { 0,1, 0,2, 0,3, 1,0, 1,2, 1,4, 2,0, 2,2, 2,3, 9,9 }; 
+//prog_uchar letters_55[] PROGMEM = /* 7 */ { 0,0, 0,3, 0,4, 1,0, 1,2, 2,0, 2,1, 9,9 }; 
+//prog_uchar letters_56[] PROGMEM = /* 8 */ { 0,0, 0,1, 0,3, 0,4, 1,0, 1,2, 1,4, 2,0, 2,1, 2,3, 2,4, 9,9 }; 
+//prog_uchar letters_57[] PROGMEM = /* 9 */ { 0,1, 0,2, 0,4, 1,0, 1,2, 1,4, 2,1, 2,2, 2,3, 9,9 }; 
+
+// 4 px wide
+prog_uchar letters_48[] PROGMEM = /* 0 */ { 0,1, 0,2, 0,3, 1,0, 1,4, 2,0, 2,4, 3,1, 3,2, 3,3, 9,9 }; 
+prog_uchar letters_49[] PROGMEM = /* 1 */ { 0,0, 0,4, 1,0, 1,1, 1,2, 1,3, 1,4, 2,4, 9,9 }; 
+prog_uchar letters_50[] PROGMEM = /* 2 */ { 0,0, 0,3, 0,4, 1,0, 1,2, 1,4, 2,0, 2,2, 2,4, 3,1, 3,4, 9,9 }; 
+prog_uchar letters_51[] PROGMEM = /* 3 */ { 0,0, 0,4, 1,0, 1,2, 1,4, 2,0, 2,2, 2,4, 3,1, 3,3, 9,9 }; 
+prog_uchar letters_52[] PROGMEM = /* 4 */ { 0,0, 0,1, 0,2, 1,2, 2,0, 2,1, 2,2, 2,3, 2,4, 3,2, 9,9 }; 
+prog_uchar letters_53[] PROGMEM = /* 5 */ { 0,0, 0,1, 0,2, 0,4, 1,0, 1,2, 1,4, 2,0, 2,2, 2,4, 3,0, 3,3, 9,9 }; 
+prog_uchar letters_54[] PROGMEM = /* 6 */ { 0,1, 0,2, 0,3, 1,0, 1,2, 1,4, 2,0, 2,2, 2,4, 3,3, 9,9 }; 
+prog_uchar letters_55[] PROGMEM = /* 7 */ { 0,0, 1,0, 1,3, 1,4, 2,0, 2,2, 3,0, 3,1, 9,9 }; 
+prog_uchar letters_56[] PROGMEM = /* 8 */ { 0,1, 0,3, 1,0, 1,2, 1,4, 2,0, 2,2, 2,4, 3,1, 3,3, 9,9 }; 
+prog_uchar letters_57[] PROGMEM = /* 9 */ { 0,1, 1,0, 1,2, 1,4, 2,0, 2,2, 2,4, 3,1, 3,2, 3,3, 9,9 }; 
+
+
 prog_uchar letters_58[] PROGMEM = /* : */ { 0,1, 0,3, 9,9 }; 
 prog_uchar letters_65[] PROGMEM = /* A */ { 0,1, 0,2, 0,3, 0,4, 1,0, 1,2, 2,0, 2,2, 3,1, 3,2, 3,3, 3,4, 9,9 }; 
 prog_uchar letters_66[] PROGMEM = /* B */ { 0,0, 0,1, 0,2, 0,3, 0,4, 1,0, 1,2, 1,4, 2,0, 2,2, 2,4, 3,1, 3,3, 9,9 }; 
