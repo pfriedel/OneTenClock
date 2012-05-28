@@ -8,6 +8,10 @@
 #include "RealTimeClockDS1307.h"
 #include "tinyfont.h" // font is hiding in here.
 
+//#include <dht11.h>
+//dht11 DHT11;
+//#define DHT11PIN 16
+
 #define SET_BUTTON_PIN 14
 #define INC_BUTTON_PIN 15
 
@@ -46,7 +50,7 @@ void setup() {
   LedSign::Init(GRAYSCALE);  //Initializes the screen
   Wire.begin();
 
-  //  Serial.begin(9600);
+  Serial.begin(9600);
 
   pinMode(SET_BUTTON_PIN, INPUT_PULLUP); // A0
   pinMode(INC_BUTTON_PIN, INPUT_PULLUP); // A1
@@ -127,6 +131,10 @@ void loop() {
       DisplayTime(3000);
       break;
     }
+//    int chk = DHT11.read(DHT11PIN);
+//    if(chk == 0) {
+//      int temp = (1.8*DHT11.temperature+32);
+//    }
   }
 }
 
@@ -333,7 +341,10 @@ void DisplayTime(unsigned long int runtime) {
   char text[2];
   // hours on the top
   itoa(hours,text,10);
-  if(hours >= 10) {
+  if(hours < 10) { // right justify 1-9
+    x = Font_Draw(text[0],5,0,MAXBRIGHT);
+  }    
+  else if(hours >= 10 && hours < 20) {
     x = Font_Draw(text[0],1,0,MAXBRIGHT);
     Font_Draw(text[1],x+1,0,MAXBRIGHT);
   }
@@ -357,6 +368,12 @@ void DisplayTime(unsigned long int runtime) {
     Font_Draw(text[1],x,6,MAXBRIGHT);
   }
   delay(runtime);
+
+  if (digitalRead(SET_BUTTON_PIN) == 0) {
+    processSetButton();
+  }
+
+
 }
 
 void setTime() {
@@ -392,6 +409,9 @@ void resetDisplay() {
   }
 }
 
+//void TimeSet() {
+
+
 void processSetButton() {
   if((hours > 23) or (minutes > 59)) {
     updateTimeBuffer();
@@ -407,6 +427,7 @@ void processSetButton() {
   isSettingHours   = !isSettingHours;
   isSettingMinutes = !isSettingMinutes;
 
+  // this was breaking it for reasons I can't quite pin down.
   //  resetDisplay();
   
   int x;
