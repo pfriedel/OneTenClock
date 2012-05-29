@@ -18,6 +18,11 @@
 #define COLS 10 // usually x
 #define ROWS 11 // usually y
 
+// Do you want the cells to dim as they age or stay the same brightness?
+#define AGING true
+
+#define CLOCK_EVERY 5000
+
 // are your LEDs a little obnoxious at full brightness? 2 seems to be the workable minimum, some animations break at 1.
 int MAXBRIGHT=7;
 
@@ -54,13 +59,10 @@ void setup() {
 
   pinMode(SET_BUTTON_PIN, INPUT_PULLUP); // A0
   pinMode(INC_BUTTON_PIN, INPUT_PULLUP); // A1
-// deprecated in Arduino 1.0.1 - declare them as INPUT_PULLUP in pinMode now
-//  digitalWrite(SET_BUTTON_PIN, HIGH); // enable the pullup on B0
-//  digitalWrite(INC_BUTTON_PIN, HIGH); // ditto
   
   // let the clock seed our randomizer - seems to work
   RTC.readClock();
-  randomSeed(RTC.getSeconds());
+  randomSeed(RTC.getSeconds()); // is actually less random than it should be.  hrm.
   updateTimeBuffer();
 }
 
@@ -230,14 +232,19 @@ void Life() {
   set_random_next_frame();
   fade_to_next_frame(int(200/MAXBRIGHT));
   delay(150);
+
+  unsigned long starttime = millis();
   
   while(1) {
+    // show the clock every CLOCK_EVERY seconds
+    if(abs(millis()) > starttime + CLOCK_EVERY) {
+      delay(150);
+      DisplayTime(1000);
+      starttime = millis();
+    }
+
     // Log every 20th frame to monitor for repeats
     if( frame_number == 0 ) { 
-      if(generation > 0) {
-	delay(350); // otherwise it just dumps into the time as soon as it finishes fading in
-	DisplayTime(3000);
-      }
       log_current_frame(); 
     }
     
@@ -302,11 +309,13 @@ void generate_next_generation(void){  //looks at current generation, writes to n
         if( (neighbors == 2) || (neighbors == 3) ){
           //Any live cell with two or three live neighbours lives on to the next generation.                                                            
 
-	  if(get_led_xy(x,y) > 2) { world[x][y][1] = (get_led_xy(x,y)-2); }
-	  else { world[x][y][1] = get_led_xy(x,y); }
-
-	  //
-          world[x][y][1] = MAXBRIGHT;
+	  if(AGING) {
+	    if(get_led_xy(x,y) > 1) { world[x][y][1] = (get_led_xy(x,y)-1); }
+	    else { world[x][y][1] = get_led_xy(x,y); }
+	  }
+	  else {
+	    world[x][y][1] = MAXBRIGHT;
+	  }
         }
         if( neighbors > 3 ){
           //Any live cell with more than three live neighbours dies, as if by overcyding.                                                             
