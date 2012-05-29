@@ -8,9 +8,9 @@
 #include "RealTimeClockDS1307.h"
 #include "tinyfont.h" // font is hiding in here.
 
-//#include <dht11.h>
-//dht11 DHT11;
-//#define DHT11PIN 16
+#include <dht11.h>
+dht11 DHT11;
+#define DHT11PIN 17
 
 #define SET_BUTTON_PIN 14
 #define INC_BUTTON_PIN 15
@@ -49,17 +49,19 @@ boolean isDisplayingQuote = false;
 
 // buffer for time display;
 char timeBuffer[]   = "12:34";
+char tempnhum[] = "ttt< hhh;";
 
 //--------------------------------------------------------------------------------
 void setup() {
   LedSign::Init(GRAYSCALE);  //Initializes the screen
   Wire.begin();
 
-  Serial.begin(9600);
+  //  Serial.begin(9600);
 
   pinMode(SET_BUTTON_PIN, INPUT_PULLUP); // A0
   pinMode(INC_BUTTON_PIN, INPUT_PULLUP); // A1
-  
+  pinMode(DHT11PIN, INPUT);
+
   // let the clock seed our randomizer - seems to work
   RTC.readClock();
   randomSeed(RTC.getSeconds()); // is actually less random than it should be.  hrm.
@@ -133,10 +135,26 @@ void loop() {
       DisplayTime(3000);
       break;
     }
-//    int chk = DHT11.read(DHT11PIN);
-//    if(chk == 0) {
-//      int temp = (1.8*DHT11.temperature+32);
-//    }
+
+
+  int chk = DHT11.read(DHT11PIN);
+  //  Serial.println(chk, DEC);
+  if(chk == 0) {
+    int temperature = (1.8*DHT11.temperature+32);
+    int humidity = DHT11.humidity;
+
+    delay(300);
+
+    temperature = (1.8*DHT11.temperature+32);
+    humidity = DHT11.humidity;
+    
+    sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
+    //    sprintf(tempnhum, "%3d< %3d;", (1.8*DHT11.temperature+32), DHT11.humidity);
+    Banner(tempnhum, 100, random(6));
+  }
+
+
+
   }
 }
 
