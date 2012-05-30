@@ -43,7 +43,8 @@
 volatile unsigned int LedSign::tcnt2;
 
 struct videoPage {
-    uint8_t pixels[SHADES][48];  // TODO: is 48 right?
+// WAS: 48 - seems to be needed for double buffering, but since I'm only using the single page, I only need half the allocation.
+  uint8_t pixels[SHADES][24];  // TODO: is 48 right?
 }; 
 
 /* -----------------------------------------------------------------  */
@@ -349,14 +350,10 @@ void LedSign::Vertical(int x, int set) {
  */
 void LedSign::Set(uint8_t x, uint8_t y, uint8_t c)
 {
-//  Serial.println();
-//  Serial.println(x+y*DisplayCols, DEC);
   // CHANGEME: This used to reference the number of columns as an integer, but DisplayCols is known, so calculate against that.
     uint8_t pin_high = ledMap[x+y*DisplayCols].high;
     uint8_t pin_low  = ledMap[x+y*DisplayCols].low;
     if(x==0 && y==0) { pin_high = 12; pin_low = 2; } // HACK HACK HACK - without this, ledMap[0].high = 0;
-//    Serial.println(pin_high);
-//    Serial.println(pin_low);
     // pin_low is directly the address in the led array (minus 2 because the 
     // first two bytes are used for RS232 communication), but
     // as it is a two byte array we need to check pin_high also.
@@ -404,7 +401,7 @@ void LedSign::SetBrightness(uint8_t brightness)
     for (uint8_t i=1; i<SHADES; i++) {
         pageCounts[i] = max - ( pow( i * delta, scale ) + start );
     }
-    Serial.end();
+//    Serial.end();
 
     if (! initialized) {
        // set front timer defaults
