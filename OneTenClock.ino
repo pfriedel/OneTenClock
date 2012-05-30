@@ -21,6 +21,9 @@ dht11 DHT11;
 // Do you want the cells to dim as they age or stay the same brightness?
 #define AGING true
 
+// How far off is the DHT11, in degrees F?
+#define DHT_CORRECTION 4
+
 #define CLOCK_EVERY 5000
 
 // are your LEDs a little obnoxious at full brightness? 2 seems to be the workable minimum, some animations break at 1.
@@ -56,7 +59,7 @@ void setup() {
   LedSign::Init(GRAYSCALE);  //Initializes the screen
   Wire.begin();
 
-  //  Serial.begin(9600);
+  Serial.begin(9600);
 
   pinMode(SET_BUTTON_PIN, INPUT_PULLUP); // A0
   pinMode(INC_BUTTON_PIN, INPUT_PULLUP); // A1
@@ -127,15 +130,7 @@ void loop() {
 
     updateTimeBuffer();
 
-    switch(random(2)) {
-    case 0:
-      Banner(timeBuffer, 100, random(5));
-      break;
-    case 1:
-      DisplayTime(3000);
-      break;
-    }
-
+    DisplayTime(3000);
 
   int chk = DHT11.read(DHT11PIN);
   //  Serial.println(chk, DEC);
@@ -143,10 +138,16 @@ void loop() {
     int temperature = (1.8*DHT11.temperature+32);
     int humidity = DHT11.humidity;
 
-    delay(300);
+  temperature = temperature-DHT_CORRECTION;
 
-    temperature = (1.8*DHT11.temperature+32);
-    humidity = DHT11.humidity;
+  Serial.print(hours, DEC);
+  Serial.print(":");
+  Serial.println(minutes, DEC);
+
+  Serial.print("Temp: ");
+  Serial.println(temperature, DEC);
+  Serial.print("Humidity: "); 
+  Serial.println(humidity, DEC);
     
     sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
     //    sprintf(tempnhum, "%3d< %3d;", (1.8*DHT11.temperature+32), DHT11.humidity);
