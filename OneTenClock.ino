@@ -26,6 +26,8 @@ dht11 DHT11;
 
 #define CLOCK_EVERY 5000
 
+#define LED_BRIGHTNESS 64
+
 byte world[COLS][ROWS][2]; // Create a double buffered world.
 byte frame_log[COLS][ROWS];
 
@@ -59,7 +61,7 @@ void setup() {
   Serial.begin(9600);
 
   // golly!  this works.  1-127.  I should make a it a setting page.
-  LedSign::SetBrightness(64);
+  LedSign::SetBrightness(LED_BRIGHTNESS);
 
   pinMode(SET_BUTTON_PIN, INPUT_PULLUP); // A0
   pinMode(INC_BUTTON_PIN, INPUT_PULLUP); // A1
@@ -112,7 +114,7 @@ void loop() {
     
     switch(random(10)) {
     case 0:
-      Apple(1000);
+      Logo(1000);
       break;
     case 1:
     case 2:
@@ -133,7 +135,12 @@ void loop() {
     
     DisplayTime(3000);
 
+    // The brightness routine does strange things to the DHT reading code causing it to timeout more often than I'd like.
+    LedSign::SetBrightness(127);
+    // And the additional delay seems to knock out the last one or two errored readings.
+    delay(50);
     int chk = DHT11.read(DHT11PIN);
+    LedSign::SetBrightness(LED_BRIGHTNESS);
     //  Serial.println(chk, DEC);
     if(chk == 0) {
       int temperature = (1.8*DHT11.temperature+32);
@@ -155,15 +162,18 @@ void loop() {
       Banner(tempnhum, 100, random(6));
     }
     else {
-      sprintf(tempnhum, "ERR");
-      Banner(tempnhum, 100, random(6));
-
       Serial.print(hours, DEC);
       Serial.print(":");
       Serial.println(minutes, DEC);
       
-      Serial.print("Temp: ERR");
-      Serial.print("Humidity: ERR"); 
+      Serial.println("Temp: ERR");
+      Serial.println("Humidity: ERR"); 
+      Serial.print("Chksum: ");
+      Serial.println(chk);
+
+      sprintf(tempnhum, "ERR");
+      Banner(tempnhum, 100, random(6));
+
     }    
   }
 }
@@ -172,7 +182,7 @@ void loop() {
 //--------------------------------------------------------------------------------
 // functions
 
-void Apple(unsigned long runtime) {
+void Logo(unsigned long runtime) {
   LedSign::Clear();
   for(int g=0; g<=7; g++) {
     LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(0,7,g); LedSign::Set(0,8,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(1,7,g); LedSign::Set(1,8,g); LedSign::Set(1,9,g); LedSign::Set(2,3,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(2,7,g); LedSign::Set(2,8,g); LedSign::Set(2,9,g); LedSign::Set(2,10,g); LedSign::Set(3,3,g); LedSign::Set(3,4,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,7,g); LedSign::Set(3,8,g); LedSign::Set(3,9,g); LedSign::Set(3,10,g); LedSign::Set(4,1,g); LedSign::Set(4,2,g); LedSign::Set(4,4,g); LedSign::Set(4,5,g); LedSign::Set(4,6,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(5,0,g); LedSign::Set(5,1,g); LedSign::Set(5,3,g); LedSign::Set(5,4,g); LedSign::Set(5,5,g); LedSign::Set(5,6,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,0,g); LedSign::Set(6,3,g); LedSign::Set(6,4,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,7,g); LedSign::Set(6,8,g); LedSign::Set(6,9,g); LedSign::Set(6,10,g); LedSign::Set(7,3,g); LedSign::Set(7,4,g); LedSign::Set(7,7,g); LedSign::Set(7,8,g); LedSign::Set(7,9,g); LedSign::Set(8,4,g); LedSign::Set(8,7,g); LedSign::Set(8,8,g);
