@@ -26,9 +26,6 @@ dht11 DHT11;
 
 #define CLOCK_EVERY 5000
 
-// are your LEDs a little obnoxious at full brightness? 2 seems to be the workable minimum, some animations break at 1.
-int MAXBRIGHT=7;
-
 byte world[COLS][ROWS][2]; // Create a double buffered world.
 byte frame_log[COLS][ROWS];
 
@@ -60,6 +57,9 @@ void setup() {
   Wire.begin();
 
   Serial.begin(9600);
+
+  // golly!  this works.  1-127.  I should make a it a setting page.
+  LedSign::SetBrightness(64);
 
   pinMode(SET_BUTTON_PIN, INPUT_PULLUP); // A0
   pinMode(INC_BUTTON_PIN, INPUT_PULLUP); // A1
@@ -103,9 +103,10 @@ void loop() {
     resetDisplay();
   }
   else {
-
+    
     //clear the current world of whatever had been in it.
     for(int y = 0; y < ROWS; y++) { for(int x = 0; x < COLS; x++) { world[x][y][0] = 0; world[x][y][1] = 0; } }
+    
     
     unsigned long now=millis();
     
@@ -127,35 +128,43 @@ void loop() {
       Life();
       break;
     }
-
+    
     updateTimeBuffer();
-
+    
     DisplayTime(3000);
 
-  int chk = DHT11.read(DHT11PIN);
-  //  Serial.println(chk, DEC);
-  if(chk == 0) {
-    int temperature = (1.8*DHT11.temperature+32);
-    int humidity = DHT11.humidity;
+    int chk = DHT11.read(DHT11PIN);
+    //  Serial.println(chk, DEC);
+    if(chk == 0) {
+      int temperature = (1.8*DHT11.temperature+32);
+      int humidity = DHT11.humidity;
+      
+      temperature = temperature-DHT_CORRECTION;
+      
+      Serial.print(hours, DEC);
+      Serial.print(":");
+      Serial.println(minutes, DEC);
+      
+      Serial.print("Temp: ");
+      Serial.println(temperature, DEC);
+      Serial.print("Humidity: "); 
+      Serial.println(humidity, DEC);
+      
+      sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
+      //    sprintf(tempnhum, "%3d< %3d;", (1.8*DHT11.temperature+32), DHT11.humidity);
+      Banner(tempnhum, 100, random(6));
+    }
+    else {
+      sprintf(tempnhum, "ERR");
+      Banner(tempnhum, 100, random(6));
 
-  temperature = temperature-DHT_CORRECTION;
-
-  Serial.print(hours, DEC);
-  Serial.print(":");
-  Serial.println(minutes, DEC);
-
-  Serial.print("Temp: ");
-  Serial.println(temperature, DEC);
-  Serial.print("Humidity: "); 
-  Serial.println(humidity, DEC);
-    
-    sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
-    //    sprintf(tempnhum, "%3d< %3d;", (1.8*DHT11.temperature+32), DHT11.humidity);
-    Banner(tempnhum, 100, random(6));
-  }
-
-
-
+      Serial.print(hours, DEC);
+      Serial.print(":");
+      Serial.println(minutes, DEC);
+      
+      Serial.print("Temp: ERR");
+      Serial.print("Humidity: ERR"); 
+    }    
   }
 }
 
@@ -165,14 +174,14 @@ void loop() {
 
 void Apple(unsigned long runtime) {
   LedSign::Clear();
-  for(int g=0; g<=MAXBRIGHT; g++) {
+  for(int g=0; g<=7; g++) {
     LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(0,7,g); LedSign::Set(0,8,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(1,7,g); LedSign::Set(1,8,g); LedSign::Set(1,9,g); LedSign::Set(2,3,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(2,7,g); LedSign::Set(2,8,g); LedSign::Set(2,9,g); LedSign::Set(2,10,g); LedSign::Set(3,3,g); LedSign::Set(3,4,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,7,g); LedSign::Set(3,8,g); LedSign::Set(3,9,g); LedSign::Set(3,10,g); LedSign::Set(4,1,g); LedSign::Set(4,2,g); LedSign::Set(4,4,g); LedSign::Set(4,5,g); LedSign::Set(4,6,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(5,0,g); LedSign::Set(5,1,g); LedSign::Set(5,3,g); LedSign::Set(5,4,g); LedSign::Set(5,5,g); LedSign::Set(5,6,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,0,g); LedSign::Set(6,3,g); LedSign::Set(6,4,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,7,g); LedSign::Set(6,8,g); LedSign::Set(6,9,g); LedSign::Set(6,10,g); LedSign::Set(7,3,g); LedSign::Set(7,4,g); LedSign::Set(7,7,g); LedSign::Set(7,8,g); LedSign::Set(7,9,g); LedSign::Set(8,4,g); LedSign::Set(8,7,g); LedSign::Set(8,8,g);
     delay(50);
   }
 
   delay(runtime);
 
-  for(int g=MAXBRIGHT; g>=0; g--) {
+  for(int g=7; g>=0; g--) {
     LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(0,7,g); LedSign::Set(0,8,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(1,7,g); LedSign::Set(1,8,g); LedSign::Set(1,9,g); LedSign::Set(2,3,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(2,7,g); LedSign::Set(2,8,g); LedSign::Set(2,9,g); LedSign::Set(2,10,g); LedSign::Set(3,3,g); LedSign::Set(3,4,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,7,g); LedSign::Set(3,8,g); LedSign::Set(3,9,g); LedSign::Set(3,10,g); LedSign::Set(4,1,g); LedSign::Set(4,2,g); LedSign::Set(4,4,g); LedSign::Set(4,5,g); LedSign::Set(4,6,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(5,0,g); LedSign::Set(5,1,g); LedSign::Set(5,3,g); LedSign::Set(5,4,g); LedSign::Set(5,5,g); LedSign::Set(5,6,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,0,g); LedSign::Set(6,3,g); LedSign::Set(6,4,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,7,g); LedSign::Set(6,8,g); LedSign::Set(6,9,g); LedSign::Set(6,10,g); LedSign::Set(7,3,g); LedSign::Set(7,4,g); LedSign::Set(7,7,g); LedSign::Set(7,8,g); LedSign::Set(7,9,g); LedSign::Set(8,4,g); LedSign::Set(8,7,g); LedSign::Set(8,8,g);
     delay(50);
   }
@@ -204,7 +213,7 @@ void set_random_next_frame(void) {
   for(int y=0; y<ROWS; y++) {
     for(int x=0; x<COLS; x++) {
       if(random(100) > density) {
-	world[x][y][1] = MAXBRIGHT;
+	world[x][y][1] = 7;
       }
     }
   }
@@ -240,16 +249,16 @@ void Life() {
   initialize_frame_log(); // blank out the frame_log world
   
   // flash the screen - ~1000msec
-  for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = MAXBRIGHT; } }
-  fade_to_next_frame(int(200/MAXBRIGHT));
+  for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = 7; } }
+  fade_to_next_frame(30);
   delay(300); 
   for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = 0; } }
-  fade_to_next_frame(int(200/MAXBRIGHT));
+  fade_to_next_frame(30);
   delay(300); 
 
   // draw the initial generation
   set_random_next_frame();
-  fade_to_next_frame(int(200/MAXBRIGHT));
+  fade_to_next_frame(30);
   delay(150);
 
   unsigned long starttime = millis();
@@ -292,7 +301,7 @@ void Life() {
     
     // ~ 500msec per generation.
     // Otherwise, fade to the next generation
-    fade_to_next_frame(int(350/MAXBRIGHT));
+    fade_to_next_frame(50);
     delay(50);
     frame_number++;
     generation++;
@@ -333,7 +342,7 @@ void generate_next_generation(void){  //looks at current generation, writes to n
 	    else { world[x][y][1] = get_led_xy(x,y); }
 	  }
 	  else {
-	    world[x][y][1] = MAXBRIGHT;
+	    world[x][y][1] = 7;
 	  }
         }
         if( neighbors > 3 ){
@@ -345,7 +354,7 @@ void generate_next_generation(void){  //looks at current generation, writes to n
         //current cell is dead                                                                                                                          
         if( neighbors == 3 ){
           // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.                                               
-          world[x][y][1] = MAXBRIGHT;
+          world[x][y][1] = 7;
         }
         else {
           //stay dead for next generation                                                                                                               
@@ -370,30 +379,30 @@ void DisplayTime(unsigned long int runtime) {
   // hours on the top
   itoa(hours,text,10);
   if(hours < 10) { // right justify 1-9
-    x = Font_Draw(text[0],5,0,MAXBRIGHT);
+    x = Font_Draw(text[0],5,0,7);
   }    
   else if(hours >= 10 && hours < 20) {
-    x = Font_Draw(text[0],1,0,MAXBRIGHT);
-    Font_Draw(text[1],x+1,0,MAXBRIGHT);
+    x = Font_Draw(text[0],1,0,7);
+    Font_Draw(text[1],x+1,0,7);
   }
   else {
-    x = Font_Draw(text[0],0,0,MAXBRIGHT);
-    Font_Draw(text[1],x,0,MAXBRIGHT);
+    x = Font_Draw(text[0],0,0,7);
+    Font_Draw(text[1],x,0,7);
   }
   
   // minutes on the bottom
   itoa(minutes,text,10);
   if(minutes < 10) {
-    x = Font_Draw(48, 0, 6, MAXBRIGHT);
-    Font_Draw(text[0], x, 6, MAXBRIGHT);
+    x = Font_Draw(48, 0, 6, 7);
+    Font_Draw(text[0], x, 6, 7);
   }
   else if (minutes >=10 && minutes <=19) {
-    x = Font_Draw(text[0], 1, 6, MAXBRIGHT);
-    Font_Draw(text[1], x+1, 6, MAXBRIGHT);
+    x = Font_Draw(text[0], 1, 6, 7);
+    Font_Draw(text[1], x+1, 6, 7);
   }
   else {
-    x = Font_Draw(text[0],0,6,MAXBRIGHT);
-    Font_Draw(text[1],x,6,MAXBRIGHT);
+    x = Font_Draw(text[0],0,6,7);
+    Font_Draw(text[1],x,6,7);
   }
   delay(runtime);
 
@@ -463,15 +472,15 @@ void processSetButton() {
   if(isSettingHours) {
     LedSign::Clear();
     itoa(hours,text,10);
-    x = Font_Draw(text[0],0,0,MAXBRIGHT);
-    Font_Draw(text[1],x,0,MAXBRIGHT);
+    x = Font_Draw(text[0],0,0,7);
+    Font_Draw(text[1],x,0,7);
     delay(10);
   }
   else {
     LedSign::Clear();
     itoa(minutes,text,10);
-    x = Font_Draw(text[0],0,6,MAXBRIGHT);
-    Font_Draw(text[1],x,6,MAXBRIGHT);
+    x = Font_Draw(text[0],0,6,7);
+    Font_Draw(text[1],x,6,7);
     delay(10);
   }
 }
@@ -502,22 +511,22 @@ void processIncButton() {
   if(isSettingHours) {
     LedSign::Clear();
     itoa(hours,text,10);
-    x = Font_Draw(text[0],0,0,MAXBRIGHT);
-    Font_Draw(text[1],x,0,MAXBRIGHT);
+    x = Font_Draw(text[0],0,0,7);
+    Font_Draw(text[1],x,0,7);
     delay(10);
   }
   else {
     LedSign::Clear();
     itoa(minutes,text,10);
-    x = Font_Draw(text[0],0,6,MAXBRIGHT);
-    Font_Draw(text[1],x,6,MAXBRIGHT);
+    x = Font_Draw(text[0],0,6,7);
+    Font_Draw(text[1],x,6,7);
     delay(10);
   }
 }
 
 void Rain(unsigned long now, unsigned long runtime) {
   int density = random(20,80);
-  int rainspeed = random(40,100);
+  int rainspeed = random(2,20);
   int stopraining = 0;
   while(1) {
     if(millis() > (now+runtime)) { // get out of rain eventually.
@@ -538,7 +547,7 @@ void Rain(unsigned long now, unsigned long runtime) {
     for(int x = 0; x < COLS; x++) {
       if(stopraining < ROWS+1) {
 	if(random(100) > density) { 
-	  world[x][0][1] = random(MAXBRIGHT);
+	  world[x][0][1] = random(7);
 	}
 	else {
 	  world[x][0][1] = 0;
@@ -552,7 +561,7 @@ void Rain(unsigned long now, unsigned long runtime) {
       }
     }
     // draw the changes - after this world[0] will be identical to world[1], so keep that in mind.
-    fade_to_next_frame(rainspeed/MAXBRIGHT);
+    fade_to_next_frame(rainspeed);
   }
 }
 
@@ -561,16 +570,16 @@ void Breathe(unsigned long now, unsigned long runtime) {
     if(millis() > (now+runtime)) {
       return;
     }
-    for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = MAXBRIGHT; } }
+    for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = 7; } }
     if(millis() > (now+runtime)) { return; }
     
-    fade_to_next_frame(int(200/MAXBRIGHT));
+    fade_to_next_frame(30);
     delay(300); 
     if(millis() > (now+runtime)) { return;  }
     
     for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = 0; } }
     
-    fade_to_next_frame(int(200/MAXBRIGHT));
+    fade_to_next_frame(30);
     if(millis() > (now+runtime)) { return; }
     delay(300); 
   }
@@ -651,7 +660,7 @@ void Banner ( char* str, int speed, int y) {
     LedSign::Clear(); 
     // walk through the array, drawing letters where they belong.
     for(int i=0; i<length; i++) { 
-      x2 = Font_Draw(str[i],x,y,MAXBRIGHT);
+      x2 = Font_Draw(str[i],x,y,7);
       // sets the new xpos based off of the old xpos + the width of the 
       // current character.
       x+=x2;
