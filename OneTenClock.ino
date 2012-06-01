@@ -18,6 +18,10 @@ dht11 DHT11;
 #define COLS 10 // usually x
 #define ROWS 11 // usually y
 
+// set to true to enable serial monitor - warning: uses ~2k of progmem and just
+// shy of 256 bytes of ram.
+#define _DEBUG_ true
+
 // Do you want the cells to dim as they age or stay the same brightness?
 #define AGING true
 
@@ -59,7 +63,7 @@ void setup() {
   LedSign::Init(GRAYSCALE);  //Initializes the screen
   Wire.begin();
 
-  Serial.begin(9600);
+  if(_DEBUG_) { Serial.begin(9600); }
 
   // golly!  this works.  1-127.  I should make a it a setting page.
   LedSign::SetBrightness(max_brightness);
@@ -150,29 +154,33 @@ void loop() {
       
       temperature = temperature-DHT_CORRECTION;
       
-      Serial.print(hours, DEC);
-      Serial.print(":");
-      Serial.println(minutes, DEC);
-      
-      Serial.print("Temp: ");
-      Serial.println(temperature, DEC);
-      Serial.print("Humidity: "); 
-      Serial.println(humidity, DEC);
+      if(_DEBUG_) {
+	Serial.print(hours, DEC);
+	Serial.print(":");
+	Serial.println(minutes, DEC);
+	
+	Serial.print("Temp: ");
+	Serial.println(temperature, DEC);
+	Serial.print("Humidity: "); 
+	Serial.println(humidity, DEC);
+      }
       
       sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
       //    sprintf(tempnhum, "%3d< %3d;", (1.8*DHT11.temperature+32), DHT11.humidity);
       Banner(tempnhum, 100, random(6));
     }
     else {
-      Serial.print(hours, DEC);
-      Serial.print(":");
-      Serial.println(minutes, DEC);
-      
-      Serial.println("Temp: ERR");
-      Serial.println("Humidity: ERR"); 
-      Serial.print("Chksum: ");
-      Serial.println(chk);
-      
+      if(_DEBUG_) {
+	Serial.print(hours, DEC);
+	Serial.print(":");
+	Serial.println(minutes, DEC);
+	
+	Serial.println("Temp: ERR");
+	Serial.println("Humidity: ERR"); 
+	Serial.print("Chksum: ");
+	Serial.println(chk);
+      }
+
       sprintf(tempnhum, "ERR");
       Banner(tempnhum, 100, random(6));
     }    
@@ -416,18 +424,13 @@ void DisplayTime(unsigned long int runtime) {
     Font_Draw(text[1],x,6,7);
   }
   delay(runtime);
-
-  if (digitalRead(SET_BUTTON_PIN) == 0) {
-    processSetButton();
-  }
-
-
 }
 
 void setTime() {
   RTC.switchTo24h();
   RTC.stop();
-  RTC.setSeconds(0);
+  // attempt to not cause the clock to lose as much time in the setting mode
+  //  RTC.setSeconds(0);
   RTC.setMinutes(minutes);
   RTC.setHours(hours);
   // dummy values, since they are not displayed anyway;
@@ -489,10 +492,12 @@ void processSetButton() {
     isSettingBrightness = false; 
   }
 
-  Serial.print("hrs: "); Serial.println(isSettingHours, DEC);
-  Serial.print("min: "); Serial.println(isSettingMinutes, DEC);
-  Serial.print("brt: "); Serial.println(isSettingBrightness, DEC);
-  
+  if(_DEBUG_) {
+    Serial.print("hrs: "); Serial.println(isSettingHours, DEC);
+    Serial.print("min: "); Serial.println(isSettingMinutes, DEC);
+    Serial.print("brt: "); Serial.println(isSettingBrightness, DEC);
+  }
+
   // this was breaking it for reasons I can't quite pin down.
   //  resetDisplay();
   
@@ -568,8 +573,10 @@ void processIncButton() {
   else if(isSettingBrightness) {
     LedSign::Clear(7);
     int disp_brightness = (max_brightness-30);
-    
-    Serial.println(disp_brightness, DEC);
+
+    if(_DEBUG_)
+      Serial.println(disp_brightness, DEC);
+
     itoa(disp_brightness,text,10);
     x = Font_Draw(text[0],0,3,0);
     Font_Draw(text[1],x,3,0);
