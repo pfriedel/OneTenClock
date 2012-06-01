@@ -26,7 +26,7 @@ dht11 DHT11;
 
 #define CLOCK_EVERY 5000
 
-#define LED_BRIGHTNESS 64
+uint8_t max_brightness=49;
 
 byte world[COLS][ROWS][2]; // Create a double buffered world.
 byte frame_log[COLS][ROWS];
@@ -34,8 +34,9 @@ byte frame_log[COLS][ROWS];
 int hours;
 int minutes;
 
-boolean isSettingHours   = true;
-boolean isSettingMinutes = false;
+boolean isSettingHours      = true;
+boolean isSettingMinutes    = false;
+boolean isSettingBrightness = false;
 
 #define BOUNCE_TIME_BUTTON  300   // bounce time in ms for the menu button - too short and every click is an adventure, too long and it's ponderous.
 
@@ -61,7 +62,7 @@ void setup() {
   Serial.begin(9600);
 
   // golly!  this works.  1-127.  I should make a it a setting page.
-  LedSign::SetBrightness(LED_BRIGHTNESS);
+  LedSign::SetBrightness(max_brightness);
 
   pinMode(SET_BUTTON_PIN, INPUT_PULLUP); // A0
   pinMode(INC_BUTTON_PIN, INPUT_PULLUP); // A1
@@ -109,7 +110,6 @@ void loop() {
     //clear the current world of whatever had been in it.
     for(int y = 0; y < ROWS; y++) { for(int x = 0; x < COLS; x++) { world[x][y][0] = 0; world[x][y][1] = 0; } }
     
-    
     unsigned long now=millis();
     
     switch(random(10)) {
@@ -130,18 +130,20 @@ void loop() {
       Life();
       break;
     }
-    
+
     updateTimeBuffer();
     
     DisplayTime(3000);
-
-    // The brightness routine does strange things to the DHT reading code causing it to timeout more often than I'd like.
+    
+    // The brightness routine does strange things to the DHT reading code causing it to timeout more often than I'd like.  So I pin it to the maximum and the reads tend to work out nicer.
+    LedSign::Clear();
     LedSign::SetBrightness(127);
+    
     // And the additional delay seems to knock out the last one or two errored readings.
     delay(50);
     int chk = DHT11.read(DHT11PIN);
-    LedSign::SetBrightness(LED_BRIGHTNESS);
-    //  Serial.println(chk, DEC);
+    LedSign::SetBrightness(max_brightness);
+
     if(chk == 0) {
       int temperature = (1.8*DHT11.temperature+32);
       int humidity = DHT11.humidity;
@@ -170,10 +172,9 @@ void loop() {
       Serial.println("Humidity: ERR"); 
       Serial.print("Chksum: ");
       Serial.println(chk);
-
+      
       sprintf(tempnhum, "ERR");
       Banner(tempnhum, 100, random(6));
-
     }    
   }
 }
@@ -471,9 +472,27 @@ void processSetButton() {
   lastButtonTime = millis();
 
   isSettingTime    = true;
-  isSettingHours   = !isSettingHours;
-  isSettingMinutes = !isSettingMinutes;
 
+  if(isSettingHours == true) {
+    isSettingHours = false;
+    isSettingMinutes = true;
+    isSettingBrightness = false; 
+  }
+  else if(isSettingMinutes == true) {
+    isSettingHours = false;
+    isSettingMinutes = false;
+    isSettingBrightness = true; 
+  }
+  else if(isSettingBrightness == true) {
+    isSettingHours = true;
+    isSettingMinutes = false;
+    isSettingBrightness = false; 
+  }
+
+  Serial.print("hrs: "); Serial.println(isSettingHours, DEC);
+  Serial.print("min: "); Serial.println(isSettingMinutes, DEC);
+  Serial.print("brt: "); Serial.println(isSettingBrightness, DEC);
+  
   // this was breaking it for reasons I can't quite pin down.
   //  resetDisplay();
   
@@ -486,11 +505,21 @@ void processSetButton() {
     Font_Draw(text[1],x,0,7);
     delay(10);
   }
-  else {
+  else if(isSettingMinutes) {
     LedSign::Clear();
     itoa(minutes,text,10);
     x = Font_Draw(text[0],0,6,7);
     Font_Draw(text[1],x,6,7);
+    delay(10);
+  }
+  else if(isSettingBrightness) {
+    LedSign::Clear(7);
+    
+    int disp_brightness = (max_brightness-30);
+
+    itoa(disp_brightness,text,10);
+    x = Font_Draw(text[0],0,3,0);
+    Font_Draw(text[1],x,3,0);
     delay(10);
   }
 }
@@ -511,9 +540,13 @@ void processIncButton() {
     hours++;
     if (hours > 23) hours = 0;
   }
-  else {
+  else if(isSettingMinutes) {
     minutes++;
     if (minutes > 59) minutes = 0;
+  }
+  else if(isSettingBrightness) {
+    max_brightness++;
+    if(max_brightness > 49)  max_brightness = 31; 
   }
 
   int x;
@@ -525,11 +558,22 @@ void processIncButton() {
     Font_Draw(text[1],x,0,7);
     delay(10);
   }
-  else {
+  else if(isSettingMinutes) {
     LedSign::Clear();
     itoa(minutes,text,10);
     x = Font_Draw(text[0],0,6,7);
     Font_Draw(text[1],x,6,7);
+    delay(10);
+  }
+  else if(isSettingBrightness) {
+    LedSign::Clear(7);
+    int disp_brightness = (max_brightness-30);
+    
+    Serial.println(disp_brightness, DEC);
+    itoa(disp_brightness,text,10);
+    x = Font_Draw(text[0],0,3,0);
+    Font_Draw(text[1],x,3,0);
+    LedSign::SetBrightness(max_brightness);
     delay(10);
   }
 }
@@ -557,7 +601,7 @@ void Rain(unsigned long now, unsigned long runtime) {
     for(int x = 0; x < COLS; x++) {
       if(stopraining < ROWS+1) {
 	if(random(100) > density) { 
-	  world[x][0][1] = random(7);
+	  world[x][0][1] = random(1,7);
 	}
 	else {
 	  world[x][0][1] = 0;
