@@ -2,6 +2,7 @@
   USE_GITHUB_USERNAME=pfriedel
 */
 
+#include <EEPROM.h>
 #include <avr/pgmspace.h>  //AVR library for writing to ROM
 #include "Charliplexing.h"
 #include <Wire.h>
@@ -30,7 +31,7 @@ dht11 DHT11;
 
 #define CLOCK_EVERY 5000
 
-uint8_t max_brightness=49;
+uint8_t max_brightness=31;
 
 byte world[COLS][ROWS][2]; // Create a double buffered world.
 byte frame_log[COLS][ROWS];
@@ -64,6 +65,9 @@ void setup() {
   Wire.begin();
 
   if(_DEBUG_) { Serial.begin(9600); }
+
+  // Read the saved defaults
+  EEReadSettings();
 
   // golly!  this works.  1-127.  I should make a it a setting page.
   LedSign::SetBrightness(max_brightness);
@@ -108,6 +112,9 @@ void loop() {
     updateTimeBuffer();
     
     resetDisplay();
+
+    // This is smart enough to not keep writing the same value to the eeprom
+    EESaveSettings();
   }
   else {
     
@@ -166,7 +173,6 @@ void loop() {
       }
       
       sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
-      //    sprintf(tempnhum, "%3d< %3d;", (1.8*DHT11.temperature+32), DHT11.humidity);
       Banner(tempnhum, 100, random(6));
     }
     else {
@@ -187,9 +193,43 @@ void loop() {
   }
 }
 
-
 //--------------------------------------------------------------------------------
 // functions
+
+void EEReadSettings (void) {  // TODO: Detect ANY bad values, not just 255.
+
+  byte detectBad = 0;
+  byte value = 255;
+
+  value = EEPROM.read(0);
+
+  if ((value > 49) || (value < 31))
+    detectBad = 1;
+  else
+    max_brightness = value;  // MainBright has maximum possible value of 8.
+
+  if (detectBad) {
+    max_brightness = 49;
+  }
+}
+
+void EESaveSettings (void){
+  //EEPROM.write(Addr, Value);
+
+  // Careful if you use  this function: EEPROM has a limited number of write
+  // cycles in its life.  Good for human-operated buttons, bad for automation.
+
+  byte value = EEPROM.read(0);
+  if(value != max_brightness) {
+    EEPROM.write(0, max_brightness);
+    if(_DEBUG_) { Serial.println("Settings saved."); }
+  }
+  else {
+    if(_DEBUG_) { Serial.println("No changes, no write."); }
+  }
+}
+
+
 
 void Logo(unsigned long runtime) {
   LedSign::Clear();
@@ -523,9 +563,7 @@ void processSetButton() {
   }
   else if(isSettingBrightness) {
     LedSign::Clear(7);
-    
     int disp_brightness = (max_brightness-30);
-
     itoa(disp_brightness,text,10);
     x = Font_Draw(text[0],0,3,0);
     Font_Draw(text[1],x,3,0);
@@ -577,10 +615,6 @@ void processIncButton() {
   else if(isSettingBrightness) {
     LedSign::Clear(7);
     int disp_brightness = (max_brightness-30);
-
-    if(_DEBUG_)
-      Serial.println(disp_brightness, DEC);
-
     itoa(disp_brightness,text,10);
     x = Font_Draw(text[0],0,3,0);
     Font_Draw(text[1],x,3,0);
