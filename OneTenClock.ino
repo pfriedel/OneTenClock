@@ -288,8 +288,12 @@ void Life() {
       delay(150);
       DisplayTime(1000);
       starttime = millis();
+      if (digitalRead(SET_BUTTON_PIN) == 0) {
+	// "Set time" button was pressed;
+	break;
+      }
     }
-
+   
     // Log every 20th frame to monitor for repeats
     if( frame_number == 0 ) { 
       log_current_frame(); 
