@@ -686,7 +686,23 @@ void Breathe(unsigned long now, unsigned long runtime) {
 
 // Theory of operation: Bring world[x][y][0] towards world[x][y][1] and draw it.  When nothing changes, break out of the loop.
 void fade_to_next_frame(int speed) {
-  char x,y, changes;
+  char x,y, changes, frames;
+
+  frames = 0;
+  for(y = 0; y < ROWS; y++) {
+    for(x = 0; x < COLS; x++) {
+      if( world[x][y][0] < world[x][y][1] ) {
+	world[x][y][0]++;
+	frames++;
+	break;
+      }
+      if( world[x][y][0] > world[x][y][1] ) {
+	world[x][y][0]--;
+	frames++;
+	break;
+      }
+    }
+  }
 
   while(1) {
     changes = 0;
