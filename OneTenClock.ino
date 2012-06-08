@@ -369,7 +369,7 @@ void Life() {
     frame_number++;
     generation++;
     
-    if(frame_number == 20 ) {
+    if(frame_number >= 20 ) {
       frame_number = 0;
     }
   }
