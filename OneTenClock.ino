@@ -19,6 +19,7 @@ dht11 DHT11;
 #define COLS 10 // usually x
 #define ROWS 11 // usually y
 
+
 // set to true to enable serial monitor - warning: uses ~2k of progmem and just
 // shy of 256 bytes of ram.
 #define _DEBUG_ true
@@ -332,6 +333,7 @@ void Life() {
 	// "Set time" button was pressed;
 	break;
       }
+      continue;
     }
    
     // Log every 20th frame to monitor for repeats
@@ -369,7 +371,7 @@ void Life() {
     frame_number++;
     generation++;
     
-    if(frame_number == 20 ) {
+    if(frame_number >= 20 ) {
       frame_number = 0;
     }
   }
@@ -686,23 +688,7 @@ void Breathe(unsigned long now, unsigned long runtime) {
 
 // Theory of operation: Bring world[x][y][0] towards world[x][y][1] and draw it.  When nothing changes, break out of the loop.
 void fade_to_next_frame(int speed) {
-  char x,y, changes, frames;
-
-  frames = 0;
-  for(y = 0; y < ROWS; y++) {
-    for(x = 0; x < COLS; x++) {
-      if( world[x][y][0] < world[x][y][1] ) {
-	world[x][y][0]++;
-	frames++;
-	break;
-      }
-      if( world[x][y][0] > world[x][y][1] ) {
-	world[x][y][0]--;
-	frames++;
-	break;
-      }
-    }
-  }
+  char x,y, changes;
 
   while(1) {
     changes = 0;
