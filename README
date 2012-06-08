@@ -1,3 +1,6 @@
+NOTE: If you follow the spreadsheet, the 5mm is different from the 3mm master
+branch.  Use the right branch or figure out your pin mapping on your own.
+
 This code drives a 6x5 array of Charlieplexed LEDs using Jimmie Rodger's LoL
 Shield Charliplexing code.  The current target is a standalone board with an
 ATmega328 on it, but there's no reason it couldn't be hooked to an Arduino and
