@@ -2,16 +2,21 @@
   USE_GITHUB_USERNAME=pfriedel
 */
 
-#include <EEPROM.h>
+#include <EEPROM.h>        // stock header
 #include <avr/pgmspace.h>  //AVR library for writing to ROM
 #include "Charliplexing.h"
-#include <Wire.h>
+#include <Wire.h>          // stock header
 #include "RealTimeClockDS1307.h"
-#include "tinyfont.h" // font is hiding in here.
+#include "tinyfont.h" 
 
-#include <dht11.h>
+#include <dht11.h> // I'll copy this over eventually
 dht11 DHT11;
 #define DHT11PIN 17
+
+#include <OneWire.h> // from the Arduino Playground
+#define ONE_WIRE_PIN 16
+OneWire ds(ONE_WIRE_PIN);  // on pin 10                                                                                                                             
+byte ds_addr[8];
 
 #define SET_BUTTON_PIN 14
 #define INC_BUTTON_PIN 15
@@ -19,10 +24,9 @@ dht11 DHT11;
 #define COLS 10 // usually x
 #define ROWS 11 // usually y
 
-
 // set to true to enable serial monitor - warning: uses ~2k of progmem and just
 // shy of 256 bytes of ram.
-#define _DEBUG_ true
+#define _DEBUG_ false
 
 // Do you want the cells to dim as they age or stay the same brightness?
 #define AGING true
@@ -58,7 +62,7 @@ boolean isDisplayingQuote = false;
 
 // buffer for time display;
 char timeBuffer[]   = "12:34";
-char tempnhum[] = "ttt< hhh;";
+char tempnhum[] = "tttt< hhh;";
 
 //--------------------------------------------------------------------------------
 void setup() {
@@ -81,6 +85,10 @@ void setup() {
   RTC.readClock();
   randomSeed(RTC.getSeconds()); // is actually less random than it should be.  hrm.
   updateTimeBuffer();
+  
+  if(!ds.search(ds_addr)) {
+    ds.reset_search();
+  }
 }
 
 void loop() {
@@ -143,8 +151,10 @@ void loop() {
       break;
     }
 
+    // this takes a while, may as well ask for it before a guaranteed second display.
+    RequestDS18B20Temp();
+
     updateTimeBuffer();
-    
     DisplayTime(3000);
     
     // The brightness routine does strange things to the DHT reading code causing it to timeout more often than I'd like.  So I pin it to the maximum and the reads tend to work out nicer.
@@ -154,41 +164,52 @@ void loop() {
     // And the additional delay seems to knock out the last one or two errored readings.
     delay(50);
     int chk = DHT11.read(DHT11PIN);
+    int dstemp = GetDS18B20Temp();
+
     LedSign::SetBrightness(max_brightness);
 
-    if(chk == 0) {
-      int temperature = (1.8*DHT11.temperature+32);
+    // convert the celsius reading into a floating point fahrenheit reading.
+    float ftemp = ( (float) dstemp / 100 );
+    ftemp = (ftemp*1.8) + 32;
+    char temperature[5];
+    dtostrf(ftemp, -4, 1, temperature);
+    
+    if(_DEBUG_) {
+      Serial.print(hours, DEC);
+      Serial.print(":");
+      Serial.println(minutes, DEC);
+      Serial.print("unconverted temp: \"");
+      Serial.print(ftemp);
+      Serial.println("\"");
+    
+      Serial.print("dtostrf temp: \"");
+      Serial.print(temperature);
+      Serial.println("\"");
+    }
+
+    if(chk == 0) { // The DHT11 checksum came back OK
       int humidity = DHT11.humidity;
       
-      temperature = temperature-DHT_CORRECTION;
-      
       if(_DEBUG_) {
-	Serial.print(hours, DEC);
-	Serial.print(":");
-	Serial.println(minutes, DEC);
-	
 	Serial.print("Temp: ");
-	Serial.println(temperature, DEC);
+	Serial.println(temperature);
 	Serial.print("Humidity: "); 
 	Serial.println(humidity, DEC);
       }
       
-      sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
+      sprintf(tempnhum, "%s<%3d;", temperature, humidity);
       Banner(tempnhum, 100, random(6));
     }
     else {
       if(_DEBUG_) {
-	Serial.print(hours, DEC);
-	Serial.print(":");
-	Serial.println(minutes, DEC);
-	
-	Serial.println("Temp: ERR");
+	Serial.print("Temp: ");
+	Serial.println(temperature);
 	Serial.println("Humidity: ERR"); 
 	Serial.print("Chksum: ");
 	Serial.println(chk);
       }
 
-      sprintf(tempnhum, "ERR");
+      sprintf(tempnhum, "%s<", temperature);
       Banner(tempnhum, 100, random(6));
     }    
   }
@@ -811,4 +832,41 @@ uint8_t Font_Draw(unsigned char letter,int x,int y,int set) {
     charRow = pgm_read_byte_near(character + i + 1);
   }
   return maxx+2; // return the rightmost column + 2 for spacing.
+}
+
+// requests the DS18B20 start to perform a temperature conversion.
+void RequestDS18B20Temp(void) {
+  if ( OneWire::crc8( ds_addr, 7) != ds_addr[7]) {
+    return;
+  }
+
+  ds.reset();
+  ds.select(ds_addr);
+  ds.write(0x44,1);         // start conversion, with parasite power on at the end
+}
+
+// gets the results of the DS18B20's temperature conversion - needs to happen at
+// least 750ms after the request.  Returns temperature in c, with the fractional
+// part glommed on, so 25.32C is 2532.
+int GetDS18B20Temp(void) {
+  int HighByte, LowByte, TReading, SignBit, Tc_100, Whole, Fract;
+  byte data[12];
+
+  ds.reset();
+  ds.select(ds_addr);
+  ds.write(0xBE);         // Read Scratchpad
+
+  for ( byte i = 0; i < 9; i++) {           // we need 9 bytes
+    data[i] = ds.read();
+  }
+
+  LowByte = data[0]; HighByte = data[1];
+  TReading = (HighByte << 8) + LowByte;
+  SignBit = TReading & 0x8000;  // test most sig bit
+  if (SignBit) { // negative
+    TReading = (TReading ^ 0xffff) + 1; // 2's comp
+  }
+  Tc_100 = (6 * TReading) + TReading / 4;    // multiply by (100 * 0.0625) or 6.25
+
+  return(Tc_100);
 }
