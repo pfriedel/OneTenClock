@@ -416,7 +416,7 @@ void generate_next_generation(void){  //looks at current generation, writes to n
           //Any live cell with two or three live neighbours lives on to the next generation.                                                            
 
 	  if(AGING) {
-	    if(get_led_xy(x,y) > 1) { world[x][y][1] = (get_led_xy(x,y)-1); }
+	    if(get_led_xy(x,y) > 3) { world[x][y][1] = (get_led_xy(x,y)-1); }
 	    else { world[x][y][1] = get_led_xy(x,y); }
 	  }
 	  else {
