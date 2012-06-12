@@ -53,7 +53,8 @@ struct videoPage {
  * There are SHADES frames per buffer in grayscale mode (one for each brigtness)
  * and twice that many to support double-buffered grayscale.
  */
-videoPage leds[2];
+// WAS: [2] - [1] still seems to work, halves the memory utilization from 768 to 384 to 192 bytes.  That's quite reasonable.
+videoPage leds[1];
 
 /// Determines whether the display is in single or double buffer mode
 uint8_t displayMode = SINGLE_BUFFER;
@@ -443,11 +444,6 @@ void LedSign::SetBrightness(uint8_t brightness)
 /* -----------------------------------------------------------------  */
 /** The Interrupt code goes here !  
  */
-
-// All of the Port B calls are commented out so that D13 doesnt get pulled into
-// any of the "full array" updates (Clear/Horizontal/Vertical), which causes
-// some of the array to look different.  I know I don't need D13, but it's
-// helpful to see what the bootloader is doing.
 
 ISR(TIMER2_OVF_vect) {
         DDRD  = 0x0;
