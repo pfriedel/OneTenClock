@@ -320,6 +320,7 @@ int next_equals_logged_frame(){
 void Life() {
   int frame_number, generation;
   frame_number = 0;
+  generation = 0;
   initialize_frame_log(); // blank out the frame_log world
   
   // flash the screen - ~1000msec
@@ -341,6 +342,7 @@ void Life() {
     // show the clock every CLOCK_EVERY seconds
     if(abs(millis()) > starttime + CLOCK_EVERY) {
       delay(150);
+      updateTimeBuffer();
       DisplayTime(1000);
       starttime = millis();
       if (digitalRead(SET_BUTTON_PIN) == 0) {
@@ -377,12 +379,23 @@ void Life() {
       }
       break;
     }
+
+    // Death due to running too long - 2000 frames is about 15 minutes.
+    // Congratulations, multi-element loop!  Time to die!
+    if(generation >= 2000) {
+      fade_to_next_frame(50);
+      for(int f=0; f<500; f++) {
+	draw_frame();
+      }
+      break;
+    }
     
     // ~ 500msec per generation.
     // Otherwise, fade to the next generation
     fade_to_next_frame(50);
     delay(50);
     frame_number++;
+    generation++;
     
     if(frame_number >= 20 ) {
       frame_number = 0;
