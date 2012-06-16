@@ -153,7 +153,6 @@ const LEDPosition ledMap[110] = {
 //  {11,12}, {10,12}, { 9,12}, { 8,12}, { 7,12}, { 6,12}, { 5,12}, { 4,12}, { 3,12}, { 2,12},
 //};
 
-
 /* -----------------------------------------------------------------  */
 /** Constructor : Initialize the interrupt code. 
  * should be called in setup();
