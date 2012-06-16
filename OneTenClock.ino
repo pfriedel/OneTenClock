@@ -2,6 +2,9 @@
   USE_GITHUB_USERNAME=pfriedel
 */
 
+#define _DS18B20_ true
+#define _DHT11_ false
+
 #include <EEPROM.h>        // stock header
 #include <avr/pgmspace.h>  //AVR library for writing to ROM
 #include "Charliplexing.h"
@@ -10,19 +13,21 @@
 #include "tinyfont.h" 
 #include <stdio.h>
 
-#define DS18B20 true
-
+// if this board has a DHT11
+#ifdef _DHT11_
 #include <dht11.h> // I'll copy this over eventually
 dht11 DHT11;
 #define DHT11PIN 17
+#endif
 
-if(DS18B20) {
+// if this board has a DS18B20
+#ifdef _DS18B20_
 #include <OneWire.h> // from the Arduino Playground
 #define ONE_WIRE_PIN 16
-  OneWire ds(ONE_WIRE_PIN);  // on pin 10                                                                                                                             
-  byte ds_addr[8];
+OneWire ds(ONE_WIRE_PIN);  // on pin 10                                                                                                                             
+byte ds_addr[8];
 #define ONEWIRE_SEARCH 1
- }
+#endif
 
 
 #define SET_BUTTON_PIN 14
@@ -80,7 +85,7 @@ void setup() {
   if(_DEBUG_) { Serial.begin(9600); }
 
   // Reset the OneWire bus before LedSign::Init monkeys with ports. (possibly before SetBrightness?)
-  if(DS18B20) {
+  if(_DS18B20_) {
     ds.reset();
     if ( !ds.search(ds_addr)) {
       ds.reset_search();
@@ -163,7 +168,7 @@ void loop() {
     }
 
     // this takes a while, may as well ask for it before a guaranteed second display.
-    if(DS18B20) {
+    if(_DS18B20_) {
       RequestDS18B20Temp();
     }
 
@@ -177,7 +182,7 @@ void loop() {
     
     // And the additional delay seems to knock out the last one or two errored readings.
     delay(50);
-    if(DS18B20) { // the 5mm clock
+    if(_DS18B20_) { // the 5mm clock
       float ftemp = GetDS18B20Temp();
       
       LedSign::SetBrightness(max_brightness);
@@ -187,48 +192,43 @@ void loop() {
       dtostrf(ftemp, -4, 1, temperature);
       
       if(_DEBUG_) {
-	Serial.print(hours, DEC);
-	Serial.print(":");
-	Serial.println(minutes, DEC);
-	Serial.print("Temp: ");
-	Serial.println(temperature);
+	Serial.print(hours, DEC); Serial.print(":"); Serial.println(minutes, DEC);
+	Serial.print("Temp: ");	Serial.println(temperature);
       }
-      sprintf(tempnhum, "%s<%3d;", temperature, humidity);
+      sprintf(tempnhum, "%s<", temperature);
       Banner(tempnhum, 100, random(6));
     }
-  }
-  else { // no DS18B20
-    int chk = DHT11.read(DHT11PIN);
-    LedSign::SetBrightness(max_brightness);
-    
-    if(chk == 0) {
-      int temperature = (1.8*DHT11.temperature+32);
-      int humidity = DHT11.humidity;
+    else { // no DS18B20
+      int chk = DHT11.read(DHT11PIN);
+      LedSign::SetBrightness(max_brightness);
       
-      temperature = temperature-DHT_CORRECTION;
-      
-      if(_DEBUG_) {
-        Serial.print(hours, DEC); Serial.print(":");  Serial.println(minutes, DEC);
-        Serial.print("Temp: "); Serial.println(temperature, DEC);
-        Serial.print("Humidity: "); Serial.println(humidity, DEC);
+      if(chk == 0) {
+	int temperature = (1.8*DHT11.temperature+32);
+	int humidity = DHT11.humidity;
+	
+	temperature = temperature-DHT_CORRECTION;
+	
+	if(_DEBUG_) {
+	  Serial.print(hours, DEC); Serial.print(":");  Serial.println(minutes, DEC);
+	  Serial.print("Temp: "); Serial.println(temperature, DEC);
+	  Serial.print("Humidity: "); Serial.println(humidity, DEC);
+	}
+	
+	sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
+	Banner(tempnhum, 100, random(6));
       }
-      
-      sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
-      Banner(tempnhum, 100, random(6));
+      else {
+	if(_DEBUG_) {
+	  Serial.print(hours, DEC); Serial.print(":"); Serial.println(minutes, DEC);
+	  Serial.println("Temp: ERR");
+	  Serial.println("Humidity: ERR"); 
+	  Serial.print("Chksum: "); Serial.println(chk);
+	}
+	
+	sprintf(tempnhum, "ERR");
+	Banner(tempnhum, 100, random(6));
+      }    
     }
-    else {
-      if(_DEBUG_) {
-        Serial.print(hours, DEC); Serial.print(":"); Serial.println(minutes, DEC);
-	Serial.println("Temp: ERR");
-        Serial.println("Humidity: ERR"); 
-        Serial.print("Chksum: "); Serial.println(chk);
-      }
-      
-      sprintf(tempnhum, "ERR");
-      Banner(tempnhum, 100, random(6));
-    }    
-
-    
   }
 }
 
