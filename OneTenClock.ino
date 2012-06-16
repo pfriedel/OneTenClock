@@ -10,18 +10,20 @@
 #include "tinyfont.h" 
 #include <stdio.h>
 
+#define DS18B20 true
+
 #include <dht11.h> // I'll copy this over eventually
 dht11 DHT11;
 #define DHT11PIN 17
 
-// the DS18B20's address - my search routine is dodgy..
-// 28 40 28 77 03 00 00 67
+if(DS18B20) {
 #include <OneWire.h> // from the Arduino Playground
 #define ONE_WIRE_PIN 16
-OneWire ds(ONE_WIRE_PIN);  // on pin 10                                                                                                                             
-byte ds_addr[8];
-
+  OneWire ds(ONE_WIRE_PIN);  // on pin 10                                                                                                                             
+  byte ds_addr[8];
 #define ONEWIRE_SEARCH 1
+ }
+
 
 #define SET_BUTTON_PIN 14
 #define INC_BUTTON_PIN 15
@@ -78,11 +80,12 @@ void setup() {
   if(_DEBUG_) { Serial.begin(9600); }
 
   // Reset the OneWire bus before LedSign::Init monkeys with ports. (possibly before SetBrightness?)
-  ds.reset();
-  if ( !ds.search(ds_addr)) {
-    ds.reset_search();
+  if(DS18B20) {
+    ds.reset();
+    if ( !ds.search(ds_addr)) {
+      ds.reset_search();
+    }
   }
- 
   // Read the saved defaults
   EEReadSettings();
 
@@ -160,7 +163,9 @@ void loop() {
     }
 
     // this takes a while, may as well ask for it before a guaranteed second display.
-    RequestDS18B20Temp();
+    if(DS18B20) {
+      RequestDS18B20Temp();
+    }
 
     // Display the time for 3000ms
     updateTimeBuffer();
@@ -172,40 +177,58 @@ void loop() {
     
     // And the additional delay seems to knock out the last one or two errored readings.
     delay(50);
-    int chk = DHT11.read(DHT11PIN);
-    float ftemp = GetDS18B20Temp();
-
-    LedSign::SetBrightness(max_brightness);
-
-    ftemp = (ftemp*1.8) + 32;
-    char temperature[5];
-    dtostrf(ftemp, -4, 1, temperature);
-    
-    if(_DEBUG_) {
-      Serial.print(hours, DEC);
-      Serial.print(":");
-      Serial.println(minutes, DEC);
-      Serial.print("Temp: ");
-      Serial.println(temperature);
-    }
-
-    if(chk == 0) { // The DHT11 checksum came back OK
-      int humidity = DHT11.humidity;
+    if(DS18B20) { // the 5mm clock
+      float ftemp = GetDS18B20Temp();
+      
+      LedSign::SetBrightness(max_brightness);
+      
+      ftemp = (ftemp*1.8) + 32;
+      char temperature[5];
+      dtostrf(ftemp, -4, 1, temperature);
       
       if(_DEBUG_) {
-	Serial.print("Humidity: "); 
-	Serial.println(humidity, DEC);
+	Serial.print(hours, DEC);
+	Serial.print(":");
+	Serial.println(minutes, DEC);
+	Serial.print("Temp: ");
+	Serial.println(temperature);
       }
       sprintf(tempnhum, "%s<%3d;", temperature, humidity);
       Banner(tempnhum, 100, random(6));
     }
+  }
+  else { // no DS18B20
+    int chk = DHT11.read(DHT11PIN);
+    LedSign::SetBrightness(max_brightness);
+    
+    if(chk == 0) {
+      int temperature = (1.8*DHT11.temperature+32);
+      int humidity = DHT11.humidity;
+      
+      temperature = temperature-DHT_CORRECTION;
+      
+      if(_DEBUG_) {
+        Serial.print(hours, DEC); Serial.print(":");  Serial.println(minutes, DEC);
+        Serial.print("Temp: "); Serial.println(temperature, DEC);
+        Serial.print("Humidity: "); Serial.println(humidity, DEC);
+      }
+      
+      sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
+      Banner(tempnhum, 100, random(6));
+    }
     else {
       if(_DEBUG_) {
-	Serial.println("Humidity: ERR"); 
+        Serial.print(hours, DEC); Serial.print(":"); Serial.println(minutes, DEC);
+	Serial.println("Temp: ERR");
+        Serial.println("Humidity: ERR"); 
+        Serial.print("Chksum: "); Serial.println(chk);
       }
-      sprintf(tempnhum, "%s<", temperature);
+      
+      sprintf(tempnhum, "ERR");
       Banner(tempnhum, 100, random(6));
     }    
+
+    
   }
 }
 
