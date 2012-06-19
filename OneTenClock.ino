@@ -29,7 +29,6 @@ byte ds_addr[8];
 #define ONEWIRE_SEARCH 1
 #endif
 
-
 #define SET_BUTTON_PIN 14
 #define INC_BUTTON_PIN 15
 
@@ -42,6 +41,9 @@ byte ds_addr[8];
 
 // Do you want the cells to dim as they age or stay the same brightness?
 #define AGING true
+
+// Do you want the world to be a toroid?
+#define TOROID 1
 
 // How far off is the DHT11, in degrees F?
 #define DHT_CORRECTION 4
@@ -234,7 +236,6 @@ void EEReadSettings (void) {  // TODO: Detect ANY bad values, not just 255.
   byte value = 255;
 
   value = EEPROM.read(0);
-
   if ((value > 49) || (value < 31))
     detectBad = 1;
   else
@@ -321,6 +322,19 @@ void set_random_next_frame(void) {
       }
     }
   }
+
+// A blinker for testing toroidicity
+//  world[0][0][1] = 7;
+//  world[0][1][1] = 7;
+//  world[0][2][1] = 7;
+
+// A glider for testing toroidicity
+//  world[1][0][1] = 7;
+//  world[2][1][1] = 7;
+//  world[0][2][1] = 7;
+//  world[1][2][1] = 7;
+//  world[2][2][1] = 7;
+
 }
 
 char current_equals_next() {
@@ -375,7 +389,7 @@ void Life() {
       DisplayTime(1000);
       starttime = millis();
       if (digitalRead(SET_BUTTON_PIN) == 0) {
-	// "Set time" button was pressed;
+	// "Set time" button was pressed
 	break;
       }
       continue;
@@ -425,6 +439,8 @@ void Life() {
     delay(50);
     frame_number++;
     generation++;
+
+    if(_DEBUG_) { Serial.println(generation); }
     
     if(frame_number >= 20 ) {
       frame_number = 0;
@@ -433,30 +449,29 @@ void Life() {
 }
 
 
-void generate_next_generation(void){  //looks at current generation, writes to next generation array                                                    
+void generate_next_generation(void){  //looks at current generation, writes to next generation array
   char x,y, neighbors;
   for ( y=0; y<ROWS; y++ ) {
     for ( x=0; x<COLS; x++ ) {
-      //count the number of current neighbors - currently planar.  I'd love to make it toroidal.                                                        
+      //count the number of current neighbors - currently planar.
       neighbors = 0;
-      if( get_led_xy((x-1),(y-1)) > 0 ) { neighbors++; } //NW                                                                                       
-      if( get_led_xy(( x ),(y-1)) > 0 ) { neighbors++; } //N                                                                                        
-      if( get_led_xy((x+1),(y-1)) > 0 ) { neighbors++; } //NE                                                                                       
-      if( get_led_xy((x-1),( y )) > 0 ) { neighbors++; } //W                                                                                        
-      if( get_led_xy((x+1),( y )) > 0 ) { neighbors++; } //E                                                                                        
-      if( get_led_xy((x-1),(y+1)) > 0 ) { neighbors++; } //SW                                                                                       
-      if( get_led_xy(( x ),(y+1)) > 0 ) { neighbors++; } //S                                                                                        
-      if( get_led_xy((x+1),(y+1)) > 0 ) { neighbors++; } //SE                                                                                       
+      if( get_led_xy((x-1),(y-1)) > 0 ) { neighbors++; } //NW
+      if( get_led_xy(( x ),(y-1)) > 0 ) { neighbors++; } //N
+      if( get_led_xy((x+1),(y-1)) > 0 ) { neighbors++; } //NE
+      if( get_led_xy((x-1),( y )) > 0 ) { neighbors++; } //W
+      if( get_led_xy((x+1),( y )) > 0 ) { neighbors++; } //E
+      if( get_led_xy((x-1),(y+1)) > 0 ) { neighbors++; } //SW
+      if( get_led_xy(( x ),(y+1)) > 0 ) { neighbors++; } //S
+      if( get_led_xy((x+1),(y+1)) > 0 ) { neighbors++; } //SE
 
       if( world[x][y][0] > 0 ){
-        //current cell is alive                                                                                                                         
+        //current cell is alive
         if( neighbors < 2 ){
-          //Any live cell with fewer than two live neighbours dies, as if caused by under-population.                                                   
+          //Any live cell with fewer than two live neighbours dies, as if caused by under-population
           world[x][y][1] = 0;
         }
         if( (neighbors == 2) || (neighbors == 3) ){
-          //Any live cell with two or three live neighbours lives on to the next generation.                                                            
-
+          //Any live cell with two or three live neighbours lives on to the next generation
 	  if(AGING) {
 	    if(get_led_xy(x,y) > 3) { world[x][y][1] = (get_led_xy(x,y)-1); }
 	    else { world[x][y][1] = get_led_xy(x,y); }
@@ -466,18 +481,18 @@ void generate_next_generation(void){  //looks at current generation, writes to n
 	  }
         }
         if( neighbors > 3 ){
-          //Any live cell with more than three live neighbours dies, as if by overcyding.                                                             
+          //Any live cell with more than three live neighbours dies, as if by overcyding
           world[x][y][1] = 0;
         }
       }
       else {
-        //current cell is dead                                                                                                                          
+        //current cell is dead
         if( neighbors == 3 ){
-          // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.                                               
+          // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction
           world[x][y][1] = 7;
         }
         else {
-          //stay dead for next generation                                                                                                               
+          //stay dead for next generation
           world[x][y][1] = 0;
         }
       }
@@ -486,8 +501,16 @@ void generate_next_generation(void){  //looks at current generation, writes to n
 }
 
 char get_led_xy (char col, char row) {
-  if(col < 0 | col > COLS-1) { return 0; }
-  if(row < 0 | row > ROWS-1) { return 0;  }
+  if(TOROID == 1) {
+    if(col < 0)      { col = COLS-1; }
+    if(col > COLS-1) { col = 0; }
+    if(row < 0)      { row = ROWS-1; }
+    if(row > ROWS-1) { row = 0; }
+  }
+  else {
+    if(col < 0 | col > COLS-1) { return 0; }
+    if(row < 0 | row > ROWS-1) { return 0;  }
+  }
   return world[col][row][0];
 }
 
