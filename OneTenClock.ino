@@ -367,13 +367,15 @@ int next_equals_logged_frame(){
 }
 
 void Life() {
-  int frame_number, generation;
   if(_DEBUG_) { Serial.println("------\nLife starting"); }
+  int frame_number, generation, temp_generation;
   unsigned int curtime, lasttime;
   curtime = 0;
   lasttime = 0;
   frame_number = 0;
   generation = 0;
+  temp_generation = 0;
+
   initialize_frame_log(); // blank out the frame_log world
   
   // flash the screen - ~1000msec
@@ -413,21 +415,21 @@ void Life() {
 	Serial.print(" at generation "); Serial.println(generation);
       }
       DisplayTime(1000);
-      
+
       // If we're deep in generations (2 generations/second, roughly), start showing the time again.
-      if(generation > 60) { // hrm.  Maybe % 60 here?
+      if(temp_generation >= 60) {
+	temp_generation = 0;
 	LedSign::Clear();
 	if(_DS18B20_) {
 	  noInterrupts();
 	  float ftemp = GetDS18B20Temp();
 	  interrupts();
 
-	  Serial.println(ftemp);
-
 	  if((ftemp < 50.00) && (ftemp > 2)) { // sanity check the resulting data.
 	    ftemp=(ftemp*1.8)+32;
 	    char temperature[5];
 	    dtostrf(ftemp, -4, 1, temperature);
+
 	    if(_DEBUG_) {
 	      Serial.print("Temp: "); Serial.println(temperature);
 	    }
@@ -479,9 +481,9 @@ void Life() {
       break;
     }
 
-    // Death due to running too long - 2000 frames is about 15 minutes.
+    // Death due to running too long - 1800 frames is about 15 minutes. (Probably still too long, I suspect the average methuselah is a glider.)
     // Congratulations, multi-element loop!  Time to die!
-    if(generation >= 2000) {
+    if(generation >= 1800) {
       fade_to_next_frame(50);
       for(int f=0; f<500; f++) {
 	draw_frame();
@@ -495,13 +497,13 @@ void Life() {
     fade_to_next_frame(50);
 
     // this is serial-sensitive - more time spent on the serial line increases the delay.
-    unsigned int delaytime = abs(500 - (abs(millis()) - curtime)); 
     unsigned int delaytime = abs(505 - (abs(millis()) - curtime)); 
     if(delaytime >= 500) { delaytime = 90; }
     delay(delaytime);
 
     frame_number++;
     generation++;
+    temp_generation++;
 
     if(frame_number >= 20 ) {
       frame_number = 0;
