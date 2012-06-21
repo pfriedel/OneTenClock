@@ -263,6 +263,7 @@ void EESaveSettings (void){
 }
 
 void Logo(unsigned long runtime) {
+  if(_DEBUG_) { Serial.println("-----\nLogo starting"); }
   LedSign::Clear();
   switch(random(2)) {
   case 0: // major fruit company logo
@@ -319,8 +320,13 @@ void set_random_next_frame(void) {
     for(int x=0; x<COLS; x++) {
       if(random(100) > density) {
 	world[x][y][1] = 7;
+	if(_DEBUG_) { Serial.print("X"); }
+      }
+      else {
+	if(_DEBUG_) { Serial.print("."); }
       }
     }
+    if(_DEBUG_) { Serial.print("\n"); }
   }
 
 // A blinker for testing toroidicity
@@ -362,6 +368,7 @@ int next_equals_logged_frame(){
 
 void Life() {
   int frame_number, generation;
+  if(_DEBUG_) { Serial.println("------\nLife starting"); }
   unsigned int curtime, lasttime;
   curtime = 0;
   lasttime = 0;
@@ -401,6 +408,10 @@ void Life() {
       }
       
       updateTimeBuffer();
+      if(_DEBUG_) {
+	Serial.print(hours, DEC); Serial.print(":");  Serial.print(minutes, DEC);
+	Serial.print(" at generation "); Serial.println(generation);
+      }
       DisplayTime(1000);
       
       // If we're deep in generations (2 generations/second, roughly), start showing the time again.
@@ -417,6 +428,10 @@ void Life() {
 	    ftemp=(ftemp*1.8)+32;
 	    char temperature[5];
 	    dtostrf(ftemp, -4, 1, temperature);
+	    if(_DEBUG_) {
+	      Serial.print("Temp: "); Serial.println(temperature);
+	    }
+
 	    sprintf(tempnhum, "%s<", temperature);
 	    Banner(tempnhum, 100, random(6));
 	  }
@@ -747,8 +762,11 @@ void processIncButton() {
 }
 
 void Rain(unsigned long now, unsigned long runtime) {
+  // Higher numbers make for heavier rain.
   int density = random(20,80);
+  // Higher numbers make for slower rain
   int rainspeed = random(2,20);
+  if(_DEBUG_) { Serial.print("-----\nRain starting: "); Serial.print(density, DEC); Serial.print(" "); Serial.println(rainspeed, DEC); }
   int stopraining = 0;
   while(1) {
     if(millis() > (now+runtime)) { // get out of rain eventually.
