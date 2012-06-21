@@ -48,6 +48,7 @@ byte ds_addr[8];
 // How far off is the DHT11, in degrees F?
 #define DHT_CORRECTION 4
 
+// How often should it display a clock?
 #define CLOCK_EVERY 5000
 
 uint8_t max_brightness=31;
@@ -84,7 +85,7 @@ void setup() {
   pinMode(INC_BUTTON_PIN, INPUT_PULLUP); // A1
   pinMode(DHT11PIN, INPUT);
 
-  if(_DEBUG_) { Serial.begin(9600); }
+  if(_DEBUG_) { Serial.begin(115200); }
 
   // Reset the OneWire bus before LedSign::Init monkeys with ports. (possibly before SetBrightness?)
   if(_DS18B20_) {
@@ -173,14 +174,13 @@ void loop() {
     
     // The brightness routine does strange things to the DHT reading code causing it to timeout more often than I'd like.  So I pin it to the maximum and the reads tend to work out nicer.
     LedSign::Clear();
-    LedSign::SetBrightness(127);
+    noInterrupts();
     
     // And the additional delay seems to knock out the last one or two errored readings.
     delay(50);
     if(_DS18B20_) { // the 5mm clock
       float ftemp = GetDS18B20Temp();
-      
-      LedSign::SetBrightness(max_brightness);
+      interrupts();
       
       ftemp = (ftemp*1.8) + 32;
       char temperature[5];
@@ -195,7 +195,7 @@ void loop() {
     }
     else { // no DS18B20
       int chk = DHT11.read(DHT11PIN);
-      LedSign::SetBrightness(max_brightness);
+      interrupts();
       
       if(chk == 0) {
 	int temperature = (1.8*DHT11.temperature+32);
@@ -362,6 +362,9 @@ int next_equals_logged_frame(){
 
 void Life() {
   int frame_number, generation;
+  unsigned int curtime, lasttime;
+  curtime = 0;
+  lasttime = 0;
   frame_number = 0;
   generation = 0;
   initialize_frame_log(); // blank out the frame_log world
@@ -382,11 +385,47 @@ void Life() {
   unsigned long starttime = millis();
   
   while(1) {
+    // this should probably get simplified.
+    lasttime = curtime;
+    curtime = abs(millis());
+    int difftime = curtime - lasttime;
+
     // show the clock every CLOCK_EVERY seconds
-    if(abs(millis()) > starttime + CLOCK_EVERY) {
+    if(abs(millis()) >= starttime + CLOCK_EVERY) {
       delay(150);
+      if(_DS18B20_) {
+	LedSign::Clear();
+	noInterrupts();
+	RequestDS18B20Temp();
+	interrupts();
+      }
+      
       updateTimeBuffer();
       DisplayTime(1000);
+      
+      // If we're deep in generations (2 generations/second, roughly), start showing the time again.
+      if(generation > 60) { // hrm.  Maybe % 60 here?
+	LedSign::Clear();
+	if(_DS18B20_) {
+	  noInterrupts();
+	  float ftemp = GetDS18B20Temp();
+	  interrupts();
+
+	  Serial.println(ftemp);
+
+	  if((ftemp < 50.00) && (ftemp > 2)) { // sanity check the resulting data.
+	    ftemp=(ftemp*1.8)+32;
+	    char temperature[5];
+	    dtostrf(ftemp, -4, 1, temperature);
+	    sprintf(tempnhum, "%s<", temperature);
+	    Banner(tempnhum, 100, random(6));
+	  }
+	  else {
+	    Serial.println("Error!");
+	  }
+	}
+      }
+
       starttime = millis();
       if (digitalRead(SET_BUTTON_PIN) == 0) {
 	// "Set time" button was pressed
@@ -410,6 +449,7 @@ void Life() {
       for(int f=0; f<500; f++) {
 	draw_frame();
       }
+      if(_DEBUG_) { Serial.print("Died due to still life at generation "); Serial.println(generation); }
       break;
     }
     
@@ -420,6 +460,7 @@ void Life() {
       for(int f = 0; f<500; f++) {
 	draw_frame();
       }
+      if(_DEBUG_) { Serial.print("Died due to oscillation at generation "); Serial.println(generation); }
       break;
     }
 
@@ -430,18 +471,22 @@ void Life() {
       for(int f=0; f<500; f++) {
 	draw_frame();
       }
+      if(_DEBUG_) { Serial.print("Died due to methuselah's syndrome at generation "); Serial.println(generation); }
       break;
     }
     
     // ~ 500msec per generation.
     // Otherwise, fade to the next generation
     fade_to_next_frame(50);
-    delay(50);
+
+    // this is serial-sensitive - more time spent on the serial line increases the delay.
+    unsigned int delaytime = abs(500 - (abs(millis()) - curtime)); 
+    if(delaytime >= 500) { delaytime = 90; }
+    delay(delaytime);
+
     frame_number++;
     generation++;
 
-    if(_DEBUG_) { Serial.println(generation); }
-    
     if(frame_number >= 20 ) {
       frame_number = 0;
     }
