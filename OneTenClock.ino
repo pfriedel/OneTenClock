@@ -481,6 +481,7 @@ void Life() {
 
     // this is serial-sensitive - more time spent on the serial line increases the delay.
     unsigned int delaytime = abs(500 - (abs(millis()) - curtime)); 
+    unsigned int delaytime = abs(505 - (abs(millis()) - curtime)); 
     if(delaytime >= 500) { delaytime = 90; }
     delay(delaytime);
 
