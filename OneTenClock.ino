@@ -163,6 +163,8 @@ void loop() {
       break;
     }
 
+    if(_DEBUG_) { Serial.println("Back in loop"); }
+
     // this takes a while, may as well ask for it before a guaranteed second display.
     if(_DS18B20_) {
       RequestDS18B20Temp();
