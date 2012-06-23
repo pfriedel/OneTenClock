@@ -163,14 +163,16 @@ void loop() {
       break;
     }
 
-    if(_DEBUG_) { Serial.println("Back in loop"); }
+    if(_DEBUG_) { Serial.println("-----"); Serial.println("Back in loop"); }
 
     // this takes a while, may as well ask for it before a guaranteed second display.
     if(_DS18B20_) {
+      if(_DEBUG_) { Serial.println("Requesting temp."); }
       RequestDS18B20Temp();
     }
 
     // Display the time for 3000ms
+    if(_DEBUG_) { Serial.println("Updating time"); }
     updateTimeBuffer();
     DisplayTime(3000);
     
@@ -193,6 +195,7 @@ void loop() {
 	Serial.print("Temp: ");	Serial.println(temperature);
       }
       sprintf(tempnhum, "%s<", temperature);
+      if(_DEBUG_) { Serial.print("sprintf temp: "); Serial.println(tempnhum); }
       Banner(tempnhum, 100, random(6));
     }
     else { // no DS18B20
@@ -265,7 +268,7 @@ void EESaveSettings (void){
 }
 
 void Logo(unsigned long runtime) {
-  if(_DEBUG_) { Serial.println("-----\nLogo starting"); }
+  if(_DEBUG_) { Serial.println("-----"); Serial.println("Logo starting"); }
   LedSign::Clear();
   switch(random(2)) {
   case 0: // major fruit company logo
@@ -328,7 +331,7 @@ void set_random_next_frame(void) {
 	if(_DEBUG_) { Serial.print("."); }
       }
     }
-    if(_DEBUG_) { Serial.print("\n"); }
+    if(_DEBUG_) { Serial.println(""); }
   }
 
 // A blinker for testing toroidicity
@@ -411,7 +414,7 @@ int next_equals_logged_frame(){
 }
 
 void Life() {
-  if(_DEBUG_) { Serial.println("------\nLife starting"); }
+  if(_DEBUG_) { Serial.println("-----"); Serial.println("Life starting"); }
   int frame_number, generation, temp_generation;
   unsigned int curtime, lasttime;
   curtime = 0;
@@ -823,7 +826,7 @@ void Rain(unsigned long now, unsigned long runtime) {
   int density = random(20,80);
   // Higher numbers make for slower rain
   int rainspeed = random(2,20);
-  if(_DEBUG_) { Serial.print("-----\nRain starting: "); Serial.print(density, DEC); Serial.print(" "); Serial.println(rainspeed, DEC); }
+  if(_DEBUG_) { Serial.println("-----"); Serial.println("Rain starting: "); Serial.print(density, DEC); Serial.print(" "); Serial.println(rainspeed, DEC); }
   int stopraining = 0;
   while(1) {
     if(millis() > (now+runtime)) { // get out of rain eventually.
@@ -932,6 +935,8 @@ void Banner ( char* str, int speed, int y) {
   // width is the width of the array in pixels.
   // these can be unsigned - int8 might be too small
   uint8_t width=0, length=0;
+  
+  if(_DEBUG_) { Serial.print("Banner text: "); Serial.println(str); }
   
   // figure out pixel width of str
   while(str[length]!='\0') { //read to the end of the string
