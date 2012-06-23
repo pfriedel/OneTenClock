@@ -355,6 +355,48 @@ char current_equals_next() {
   return 1;
 }
 
+int next_equals_glider() {
+  unsigned int comp1, comp2, comp3, cellcount, glidermatch;
+  comp1 = 0;
+  comp2 = 0;
+  comp3 = 0;
+  cellcount = 0;
+  glidermatch = 0;
+
+  for(int y=0; y<ROWS; y++) {
+    comp1 = 0;
+    for(int x=0; x<COLS; x++) {
+      if(world[x][y][1] >= 1) {
+        // VERY IMPORTANT LINE.
+        comp1 = comp1 + (1 << x);
+        cellcount++;
+      }
+    }
+    // Shift everything over to the "left" (right shifting, I know.  Shut up.) - don't go all the way down to 1 otherwise you get false positives.
+    while((comp3 > 2) && (comp2 > 2) && (comp1 > 2)) { comp3 >>= 1; comp2 >>=1; comp1 >>=1; }
+
+    // match for glider fingerprints -- all vertical gliders transform into
+    // horizontal gliders during their life, so I only need to match 4 possible
+    // orientations
+    if((comp1 == 7) && (comp2 == 4) && (comp3 == 2) ||  // DR glider
+       (comp1 == 14) && (comp2 == 2) && (comp3 == 4) || // DL glider
+       (comp1 == 7) && (comp2 == 1) && (comp3 == 2) ||  // DL glider
+       (comp1 == 4) && (comp2 == 2) && (comp3 == 14) || // UL Glider
+       (comp1 == 2) && (comp2 == 1) && (comp3 == 7) ||  // UL Glider
+       (comp1 == 2) && (comp2 == 4) && (comp3 == 7))    // UR Glider
+      { glidermatch++; }
+
+    // rotate everything down the line.
+    comp3 = comp2; comp2 = comp1; comp1 = 0;
+  }
+
+  // If there's a glider-like shape with more than 5 living cells, it's a false
+  // positive.  If it is a glider and a seperate colony, the glider will collide
+  // with the colony eventually.
+  if((cellcount == 5) and (glidermatch > 0)) { return 1; }
+  else { return 0; }
+}
+
 int next_equals_logged_frame(){
   for(int y = 0; y<ROWS; y++) {
     for(int x = 0; x<COLS; x++) {
@@ -459,7 +501,7 @@ void Life() {
     // generate the next generation
     generate_next_generation();
 
-    // death due to still life
+    // Death due to still life
     // if there are no changes between the current generation and the next generation (still life), break out of the loop.
     if( current_equals_next() == 1 ) {
       // do something here to fade it down to blank.
@@ -478,6 +520,17 @@ void Life() {
 	draw_frame();
       }
       if(_DEBUG_) { Serial.print("Died due to oscillation at generation "); Serial.println(generation); }
+      break;
+    }
+    
+    // Death due to solo glider
+    // Gliders are relatively boring
+    if( next_equals_glider() == 1 ) {
+      fade_to_next_frame(50);
+      for(int f = 0; f<500; f++) {
+	draw_frame();
+      }
+      if(_DEBUG_) { Serial.print("Died due to lonely glider at generation "); Serial.println(generation); }
       break;
     }
 
