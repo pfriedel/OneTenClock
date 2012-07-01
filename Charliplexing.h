@@ -29,6 +29,13 @@ namespace LedSign
     extern void Clear(int set=0);
     extern void Horizontal(int y, int set=0);
     extern void Vertical(int x, int set=0);
+
+    extern void drawLine(int8_t x0, int8_t y0, int8_t x1, int8_t y1, uint8_t color);
+    extern void drawRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color);
+    extern void fillRect(uint8_t x, uint8_t y, uint8_t w, uint8_t h, uint8_t color);
+    extern void drawCircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color);
+    extern void fillCircle(uint8_t x0, uint8_t y0, uint8_t r, uint8_t color);
+    
 };
 
 #endif
