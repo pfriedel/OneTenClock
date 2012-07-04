@@ -1,9 +1,28 @@
-/*
-  USE_GITHUB_USERNAME=pfriedel
-*/
+/* 
 
-#define _DS18B20_ true
-#define _DHT11_ false
+WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING 
+
+This code requires significant fiddling inside of the Arduino distribution to
+free up enough RAM to run without crashing.
+
+1) Shrink the I2C twi BUFFER_SIZE from 32 to 8 in the following file:
+[Arduino Path]/Resources/Java/libraries/Wire/utility/twi.h 
+
+2) Shrink the I2C Wire BUFFER_LENGTH from 32 to 8 in the following file:
+[Arduino Path]/Resources/Java/libraries/Wire/Wire.h
+
+3) Shrink the Hardware Serial buffers from 16 to 4 in the following file:
+[Arduino Path]/Resources/Java/hardware/arduino/cores/arduino/HardwareSerial.cpp
+41c41
+<   #define SERIAL_BUFFER_SIZE 4
+---
+>   #define SERIAL_BUFFER_SIZE 16
+43c43
+<   #define SERIAL_BUFFER_SIZE 4
+---
+>   #define SERIAL_BUFFER_SIZE 64
+
+*/
 
 #include <EEPROM.h>        // stock header
 #include <avr/pgmspace.h>  //AVR library for writing to ROM
@@ -13,21 +32,15 @@
 #include "tinyfont.h" 
 #include <stdio.h>
 
-// if this board has a DHT11
-#ifdef _DHT11_
 #include <dht11.h> // I'll copy this over eventually
 dht11 DHT11;
 #define DHT11PIN 17
-#endif
 
-// if this board has a DS18B20
-#ifdef _DS18B20_
 #include <OneWire.h> // from the Arduino Playground
 #define ONE_WIRE_PIN 16
 OneWire ds(ONE_WIRE_PIN);  // on pin 10                                                                                                                             
 byte ds_addr[8];
 #define ONEWIRE_SEARCH 1
-#endif
 
 #define SET_BUTTON_PIN 14
 #define INC_BUTTON_PIN 15
@@ -44,9 +57,6 @@ byte ds_addr[8];
 
 // Do you want the world to be a toroid?
 #define TOROID 1
-
-// How far off is the DHT11, in degrees F?
-#define DHT_CORRECTION 4
 
 // How often should it display a clock?
 #define CLOCK_EVERY 5000
@@ -88,12 +98,11 @@ void setup() {
   if(_DEBUG_) { Serial.begin(115200); }
 
   // Reset the OneWire bus before LedSign::Init monkeys with ports. (possibly before SetBrightness?)
-  if(_DS18B20_) {
-    ds.reset();
-    if ( !ds.search(ds_addr)) {
-      ds.reset_search();
-    }
+  ds.reset();
+  if ( !ds.search(ds_addr)) {
+    ds.reset_search();
   }
+
   // Read the saved defaults
   EEReadSettings();
 
@@ -166,10 +175,8 @@ void loop() {
     if(_DEBUG_) { Serial.println("-----"); Serial.println("Back in loop"); }
 
     // this takes a while, may as well ask for it before a guaranteed second display.
-    if(_DS18B20_) {
-      if(_DEBUG_) { Serial.println("Requesting temp."); }
-      RequestDS18B20Temp();
-    }
+    if(_DEBUG_) { Serial.println("Requesting temp."); }
+    RequestDS18B20Temp();
 
     // Display the time for 3000ms
     if(_DEBUG_) { Serial.println("Updating time"); }
@@ -178,57 +185,42 @@ void loop() {
     
     // The brightness routine does strange things to the DHT reading code causing it to timeout more often than I'd like.  So I pin it to the maximum and the reads tend to work out nicer.
     LedSign::Clear();
-    noInterrupts();
+    LedSign::SetBrightness(127);
     
     // And the additional delay seems to knock out the last one or two errored readings.
     delay(50);
-    if(_DS18B20_) { // the 5mm clock
-      float ftemp = GetDS18B20Temp();
-      interrupts();
-      
-      ftemp = (ftemp*1.8) + 32;
-      char temperature[5];
-      dtostrf(ftemp, -4, 1, temperature);
-      
+    float ftemp = GetDS18B20Temp();
+    int chk = DHT11.read(DHT11PIN);
+    LedSign::SetBrightness(max_brightness);
+    
+    ftemp = (ftemp*1.8) + 32;
+    char temperature[5];
+    dtostrf(ftemp, -4, 1, temperature);
+
+    if(_DEBUG_) {
+      Serial.print(hours, DEC); Serial.print(":");  Serial.println(minutes, DEC);
+      Serial.print("Temp: "); Serial.println(temperature);
+    }      
+
+    if(chk == 0) {
+      int humidity = DHT11.humidity;
+
       if(_DEBUG_) {
-	Serial.print(hours, DEC); Serial.print(":"); Serial.println(minutes, DEC);
-	Serial.print("Temp: ");	Serial.println(temperature);
+	Serial.print("Humidity: "); Serial.println(humidity, DEC);
       }
-      sprintf(tempnhum, "%s<", temperature);
-      if(_DEBUG_) { Serial.print("sprintf temp: "); Serial.println(tempnhum); }
+      
+      sprintf(tempnhum, "%s< %d;", temperature, humidity);
       Banner(tempnhum, 100, random(6));
     }
-    else { // no DS18B20
-      int chk = DHT11.read(DHT11PIN);
-      interrupts();
-      
-      if(chk == 0) {
-	int temperature = (1.8*DHT11.temperature+32);
-	int humidity = DHT11.humidity;
-	
-	temperature = temperature-DHT_CORRECTION;
-	
-	if(_DEBUG_) {
-	  Serial.print(hours, DEC); Serial.print(":");  Serial.println(minutes, DEC);
-	  Serial.print("Temp: "); Serial.println(temperature, DEC);
-	  Serial.print("Humidity: "); Serial.println(humidity, DEC);
-	}
-	
-	sprintf(tempnhum, "%3d<%3d;", temperature, humidity);
-	Banner(tempnhum, 100, random(6));
+    else {
+      if(_DEBUG_) {
+	Serial.println("Humidity: ERR"); 
+	Serial.print("Chksum: "); Serial.println(chk);
       }
-      else {
-	if(_DEBUG_) {
-	  Serial.print(hours, DEC); Serial.print(":"); Serial.println(minutes, DEC);
-	  Serial.println("Temp: ERR");
-	  Serial.println("Humidity: ERR"); 
-	  Serial.print("Chksum: "); Serial.println(chk);
-	}
-	
-	sprintf(tempnhum, "ERR");
-	Banner(tempnhum, 100, random(6));
-      }    
-    }
+      
+      sprintf(tempnhum, "%s<", temperature);
+      Banner(tempnhum, 100, random(6));
+    }    
   }
 }
 
@@ -449,12 +441,11 @@ void Life() {
     // show the clock every CLOCK_EVERY seconds
     if(abs(millis()) >= starttime + CLOCK_EVERY) {
       delay(150);
-      if(_DS18B20_) {
-	LedSign::Clear();
-	noInterrupts();
-	RequestDS18B20Temp();
-	interrupts();
-      }
+      LedSign::Clear();
+
+      noInterrupts();
+      RequestDS18B20Temp();
+      interrupts();
       
       updateTimeBuffer();
       if(_DEBUG_) {
@@ -467,29 +458,27 @@ void Life() {
       if(temp_generation >= 60) {
 	temp_generation = 0;
 	LedSign::Clear();
-	if(_DS18B20_) {
-	  noInterrupts();
-	  float ftemp = GetDS18B20Temp();
-	  interrupts();
-
-	  if((ftemp < 50.00) && (ftemp > 2)) { // sanity check the resulting data.
-	    ftemp=(ftemp*1.8)+32;
-	    char temperature[5];
-	    dtostrf(ftemp, -4, 1, temperature);
-
-	    if(_DEBUG_) {
-	      Serial.print("Temp: "); Serial.println(temperature);
-	    }
-
-	    sprintf(tempnhum, "%s<", temperature);
-	    Banner(tempnhum, 100, random(6));
+	noInterrupts();
+	float ftemp = GetDS18B20Temp();
+	interrupts();
+	
+	if((ftemp < 50.00) && (ftemp > 2)) { // sanity check the resulting data.
+	  ftemp=(ftemp*1.8)+32;
+	  char temperature[5];
+	  dtostrf(ftemp, -4, 1, temperature);
+	  
+	  if(_DEBUG_) {
+	    Serial.print("Temp: "); Serial.println(temperature);
 	  }
-	  else {
-	    Serial.println("Error!");
-	  }
+	  
+	  sprintf(tempnhum, "%s<", temperature);
+	  Banner(tempnhum, 100, random(6));
+	}
+	else {
+	  Serial.println("Error!");
 	}
       }
-
+      
       starttime = millis();
       if (digitalRead(SET_BUTTON_PIN) == 0) {
 	// "Set time" button was pressed
@@ -531,12 +520,8 @@ void Life() {
     // Death due to solo glider
     // Gliders are relatively boring
     if( next_equals_glider() == 1 ) {
-      fade_to_next_frame(50);
-      for(int f = 0; f<500; f++) {
-	draw_frame();
-      }
       if(_DEBUG_) { Serial.print("Died due to lonely glider at generation "); Serial.println(generation); }
-      break;
+      generation = generation + 1600;
     }
 
     // Death due to running too long - 1800 frames is about 15 minutes. (Probably still too long, I suspect the average methuselah is a glider.)
