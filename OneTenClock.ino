@@ -508,6 +508,21 @@ void Life() {
     // this might not work so well with the end_before_next_time flag, since it leads to blank displays.
     if(( current_equals_next() == 1 ) and ( end_before_next_time == false)) {
       if(_DEBUG_) { Serial.print("Died due to still life at generation "); Serial.println(generation); }
+      uint8_t living_cells=0;
+      for(uint8_t y = 0; y<ROWS; y++) {
+	for(uint8_t x = 0; x<COLS; x++) {
+	  if (world[x][y][1] > 0) { living_cells++; }
+	}
+      }
+      if(living_cells == 0) { 
+	Serial.println("And there were no survivors."); 
+	for(int f=0; f<500; f++) {
+	  draw_frame();
+	}
+
+	break; 
+      }
+
       end_before_next_time = true;
     }
     
