@@ -431,6 +431,7 @@ void Life() {
   delay(150);
 
   unsigned long starttime = millis();
+  boolean end_before_next_time=false;
   
   while(1) {
     // this should probably get simplified.
@@ -440,6 +441,12 @@ void Life() {
 
     // show the clock every CLOCK_EVERY seconds
     if(abs(millis()) >= starttime + CLOCK_EVERY) {
+      if(end_before_next_time == true) {
+	for(int f=0; f<500; f++) {
+	  draw_frame();
+	}
+	break;
+      }
       delay(150);
       LedSign::Clear();
 
@@ -497,42 +504,32 @@ void Life() {
 
     // Death due to still life
     // if there are no changes between the current generation and the next generation (still life), break out of the loop.
-    if( current_equals_next() == 1 ) {
-      // do something here to fade it down to blank.
-      for(int f=0; f<500; f++) {
-	draw_frame();
-      }
+
+    // this might not work so well with the end_before_next_time flag, since it leads to blank displays.
+    if(( current_equals_next() == 1 ) and ( end_before_next_time == false)) {
       if(_DEBUG_) { Serial.print("Died due to still life at generation "); Serial.println(generation); }
-      break;
+      end_before_next_time = true;
     }
     
     // Death due to oscillator
     // If the next frame is the same as a frame from 20 generations ago, we're in a loop.
-    if( next_equals_logged_frame() == 1 ) {
-      fade_to_next_frame(50);
-      for(int f = 0; f<500; f++) {
-	draw_frame();
-      }
+    if(( next_equals_logged_frame() == 1 ) and (end_before_next_time == false)) {
       if(_DEBUG_) { Serial.print("Died due to oscillation at generation "); Serial.println(generation); }
-      break;
+      end_before_next_time = true;
     }
     
     // Death due to solo glider
     // Gliders are relatively boring
-    if( next_equals_glider() == 1 ) {
+    if(( next_equals_glider() == 1 ) and (end_before_next_time == false)) {
       if(_DEBUG_) { Serial.print("Died due to lonely glider at generation "); Serial.println(generation); }
-      generation = generation + 1600;
+      end_before_next_time = true;
     }
 
     // Death due to running too long - 1800 frames is about 15 minutes. (Probably still too long, I suspect the average methuselah is a glider.)
     // Congratulations, multi-element loop!  Time to die!
-    if(generation >= 1800) {
-      fade_to_next_frame(50);
-      for(int f=0; f<500; f++) {
-	draw_frame();
-      }
+    if((generation >= 1800) and (end_before_next_time == false)) {
       if(_DEBUG_) { Serial.print("Died due to methuselah's syndrome at generation "); Serial.println(generation); }
-      break;
+      end_before_next_time = true;
     }
     
     // ~ 500msec per generation.
