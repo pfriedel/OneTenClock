@@ -66,8 +66,8 @@ uint8_t max_brightness=31;
 byte world[COLS][ROWS][2]; // Create a double buffered world.
 byte frame_log[COLS][ROWS];
 
-int hours;
-int minutes;
+uint8_t hours;
+uint8_t minutes;
 
 boolean isSettingHours      = true;
 boolean isSettingMinutes    = false;
@@ -156,7 +156,7 @@ void loop() {
   else {
     
     //clear the current world of whatever had been in it.
-    for(int y = 0; y < ROWS; y++) { for(int x = 0; x < COLS; x++) { world[x][y][0] = 0; world[x][y][1] = 0; } }
+    for(uint8_t y = 0; y < ROWS; y++) { for(uint8_t x = 0; x < COLS; x++) { world[x][y][0] = 0; world[x][y][1] = 0; } }
     
     unsigned long now=millis();
     
@@ -264,27 +264,27 @@ void Logo(unsigned long runtime) {
   LedSign::Clear();
   switch(random(2)) {
   case 0: // major fruit company logo
-    for(int g=0; g<=7; g++) {
+    for(byte g=0; g<=7; g++) {
       LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(0,7,g); LedSign::Set(0,8,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(1,7,g); LedSign::Set(1,8,g); LedSign::Set(1,9,g); LedSign::Set(2,3,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(2,7,g); LedSign::Set(2,8,g); LedSign::Set(2,9,g); LedSign::Set(2,10,g); LedSign::Set(3,3,g); LedSign::Set(3,4,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,7,g); LedSign::Set(3,8,g); LedSign::Set(3,9,g); LedSign::Set(3,10,g); LedSign::Set(4,1,g); LedSign::Set(4,2,g); LedSign::Set(4,4,g); LedSign::Set(4,5,g); LedSign::Set(4,6,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(5,0,g); LedSign::Set(5,1,g); LedSign::Set(5,3,g); LedSign::Set(5,4,g); LedSign::Set(5,5,g); LedSign::Set(5,6,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,0,g); LedSign::Set(6,3,g); LedSign::Set(6,4,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,7,g); LedSign::Set(6,8,g); LedSign::Set(6,9,g); LedSign::Set(6,10,g); LedSign::Set(7,3,g); LedSign::Set(7,4,g); LedSign::Set(7,7,g); LedSign::Set(7,8,g); LedSign::Set(7,9,g); LedSign::Set(8,4,g); LedSign::Set(8,7,g); LedSign::Set(8,8,g);
       delay(50);
     }
     delay(runtime);
-    for(int g=7; g>=0; g--) {
-    LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(0,7,g); LedSign::Set(0,8,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(1,7,g); LedSign::Set(1,8,g); LedSign::Set(1,9,g); LedSign::Set(2,3,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(2,7,g); LedSign::Set(2,8,g); LedSign::Set(2,9,g); LedSign::Set(2,10,g); LedSign::Set(3,3,g); LedSign::Set(3,4,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,7,g); LedSign::Set(3,8,g); LedSign::Set(3,9,g); LedSign::Set(3,10,g); LedSign::Set(4,1,g); LedSign::Set(4,2,g); LedSign::Set(4,4,g); LedSign::Set(4,5,g); LedSign::Set(4,6,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(5,0,g); LedSign::Set(5,1,g); LedSign::Set(5,3,g); LedSign::Set(5,4,g); LedSign::Set(5,5,g); LedSign::Set(5,6,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,0,g); LedSign::Set(6,3,g); LedSign::Set(6,4,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,7,g); LedSign::Set(6,8,g); LedSign::Set(6,9,g); LedSign::Set(6,10,g); LedSign::Set(7,3,g); LedSign::Set(7,4,g); LedSign::Set(7,7,g); LedSign::Set(7,8,g); LedSign::Set(7,9,g); LedSign::Set(8,4,g); LedSign::Set(8,7,g); LedSign::Set(8,8,g);
-    delay(50);
+    for(byte g=7; g>=1; g--) {
+      LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(0,7,g); LedSign::Set(0,8,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(1,7,g); LedSign::Set(1,8,g); LedSign::Set(1,9,g); LedSign::Set(2,3,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(2,7,g); LedSign::Set(2,8,g); LedSign::Set(2,9,g); LedSign::Set(2,10,g); LedSign::Set(3,3,g); LedSign::Set(3,4,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,7,g); LedSign::Set(3,8,g); LedSign::Set(3,9,g); LedSign::Set(3,10,g); LedSign::Set(4,1,g); LedSign::Set(4,2,g); LedSign::Set(4,4,g); LedSign::Set(4,5,g); LedSign::Set(4,6,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(5,0,g); LedSign::Set(5,1,g); LedSign::Set(5,3,g); LedSign::Set(5,4,g); LedSign::Set(5,5,g); LedSign::Set(5,6,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,0,g); LedSign::Set(6,3,g); LedSign::Set(6,4,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,7,g); LedSign::Set(6,8,g); LedSign::Set(6,9,g); LedSign::Set(6,10,g); LedSign::Set(7,3,g); LedSign::Set(7,4,g); LedSign::Set(7,7,g); LedSign::Set(7,8,g); LedSign::Set(7,9,g); LedSign::Set(8,4,g); LedSign::Set(8,7,g); LedSign::Set(8,8,g);
+      delay(50);
     }
     LedSign::Clear();
     delay(200);
     break;
   case 1: // a heart
-    for(int g=0; g<=7; g++) {
+    for(byte g=0; g<=7; g++) {
       LedSign::Set(0,3,g); LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(1,2,g); LedSign::Set(1,7,g); LedSign::Set(2,1,g); LedSign::Set(2,8,g); LedSign::Set(3,1,g); LedSign::Set(3,9,g); LedSign::Set(4,2,g); LedSign::Set(4,10,g); LedSign::Set(5,2,g); LedSign::Set(5,10,g); LedSign::Set(6,1,g); LedSign::Set(6,9,g); LedSign::Set(7,1,g); LedSign::Set(7,8,g); LedSign::Set(8,2,g); LedSign::Set(8,7,g); LedSign::Set(9,3,g); LedSign::Set(9,4,g); LedSign::Set(9,5,g); LedSign::Set(9,6,g);
       delay(50);
     }
     delay(runtime);
-    for(int g=7; g>=0; g--) {
+    for(byte g=7; g>=1; g--) {
       LedSign::Set(0,3,g); LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(1,2,g); LedSign::Set(1,7,g); LedSign::Set(2,1,g); LedSign::Set(2,8,g); LedSign::Set(3,1,g); LedSign::Set(3,9,g); LedSign::Set(4,2,g); LedSign::Set(4,10,g); LedSign::Set(5,2,g); LedSign::Set(5,10,g); LedSign::Set(6,1,g); LedSign::Set(6,9,g); LedSign::Set(7,1,g); LedSign::Set(7,8,g); LedSign::Set(8,2,g); LedSign::Set(8,7,g); LedSign::Set(9,3,g); LedSign::Set(9,4,g); LedSign::Set(9,5,g); LedSign::Set(9,6,g);
-    delay(50);
+      delay(50);
     }
     LedSign::Clear();
     delay(200);
@@ -293,16 +293,16 @@ void Logo(unsigned long runtime) {
 }
   
 void initialize_frame_log() {
-  for(int y=0; y < ROWS; y++) {
-    for(int x=0; x < COLS; x++) {
+  for(uint8_t y=0; y < ROWS; y++) {
+    for(uint8_t x=0; x < COLS; x++) {
       frame_log[x][y] = -1;
     }
   }
 }
 
 void log_current_frame() {
-  for(int y=0; y < ROWS; y++) {
-    for(int x=0; x < COLS; x++) {
+  for(uint8_t y=0; y < ROWS; y++) {
+    for(uint8_t x=0; x < COLS; x++) {
       frame_log[x][y] = world[x][y][0];
     }
   }
@@ -312,9 +312,9 @@ void set_random_next_frame(void) {
   // blank out the world
   resetDisplay();
   
-  int density = random(40,80);
-  for(int y=0; y<ROWS; y++) {
-    for(int x=0; x<COLS; x++) {
+  uint8_t density = random(40,80);
+  for(uint8_t y=0; y<ROWS; y++) {
+    for(uint8_t x=0; x<COLS; x++) {
       if(random(100) > density) {
 	world[x][y][1] = 7;
 	if(_DEBUG_) { Serial.print("X"); }
@@ -341,7 +341,7 @@ void set_random_next_frame(void) {
 }
 
 char current_equals_next() {
-  char x, y;
+  uint8_t x, y;
   for(y=0; y<ROWS; y++) {
     for(x=0; x<COLS; x++) {
       if( world[x][y][0] != world[x][y][1] ) {
@@ -352,17 +352,17 @@ char current_equals_next() {
   return 1;
 }
 
-int next_equals_glider() {
-  unsigned int comp1, comp2, comp3, cellcount, glidermatch;
+uint8_t next_equals_glider() {
+  uint8_t comp1, comp2, comp3, cellcount, glidermatch;
   comp1 = 0;
   comp2 = 0;
   comp3 = 0;
   cellcount = 0;
   glidermatch = 0;
 
-  for(int y=0; y<ROWS; y++) {
+  for(uint8_t y=0; y<ROWS; y++) {
     comp1 = 0;
-    for(int x=0; x<COLS; x++) {
+    for(uint8_t x=0; x<COLS; x++) {
       if(world[x][y][1] >= 1) {
         // VERY IMPORTANT LINE.
         comp1 = comp1 + (1 << x);
@@ -394,9 +394,9 @@ int next_equals_glider() {
   else { return 0; }
 }
 
-int next_equals_logged_frame(){
-  for(int y = 0; y<ROWS; y++) {
-    for(int x = 0; x<COLS; x++) {
+uint8_t next_equals_logged_frame(){
+  for(uint8_t y = 0; y<ROWS; y++) {
+    for(uint8_t x = 0; x<COLS; x++) {
       if(world[x][y][1] != frame_log[x][y] ) {
 	return 0;
       }
@@ -418,10 +418,10 @@ void Life() {
   initialize_frame_log(); // blank out the frame_log world
   
   // flash the screen - ~1000msec
-  for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = 7; } }
+  for(uint8_t y=0; y < ROWS; y++) { for(uint8_t x=0; x < COLS; x++) { world[x][y][1] = 7; } }
   fade_to_next_frame(30);
   delay(300); 
-  for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = 0; } }
+  for(uint8_t y=0; y < ROWS; y++) { for(uint8_t x=0; x < COLS; x++) { world[x][y][1] = 0; } }
   fade_to_next_frame(30);
   delay(300); 
 
@@ -475,7 +475,7 @@ void Life() {
 	  Banner(tempnhum, 100, random(6));
 	}
 	else {
-	  Serial.println("Error!");
+	  Serial.println("Temp Error!");
 	}
       }
       
@@ -682,8 +682,8 @@ void updateTimeBuffer() {
 }
 
 void resetDisplay() {
-  for(int y = 0; y <=ROWS; y++) {
-    for(int x = 0; x <=COLS; x++) {
+  for(uint8_t y = 0; y <=ROWS; y++) {
+    for(uint8_t x = 0; x <=COLS; x++) {
       world[x][y][0] = 0;
       world[x][y][1] = 0;
     }
@@ -746,7 +746,7 @@ void processSetButton() {
   }
   else if(isSettingBrightness) {
     LedSign::Clear(7);
-    int disp_brightness = (max_brightness-30);
+    uint8_t disp_brightness = (max_brightness-30);
     itoa(disp_brightness,text,10);
     x = Font_Draw(text[0],0,3,0);
     Font_Draw(text[1],x,3,0);
@@ -797,7 +797,7 @@ void processIncButton() {
   }
   else if(isSettingBrightness) {
     LedSign::Clear(7);
-    int disp_brightness = (max_brightness-30);
+    uint8_t disp_brightness = (max_brightness-30);
     itoa(disp_brightness,text,10);
     x = Font_Draw(text[0],0,3,0);
     Font_Draw(text[1],x,3,0);
@@ -808,18 +808,18 @@ void processIncButton() {
 
 void Rain(unsigned long now, unsigned long runtime) {
   // Higher numbers make for heavier rain.
-  int density = random(20,80);
+  uint8_t density = random(20,80);
   // Higher numbers make for slower rain
-  int rainspeed = random(2,20);
+  uint8_t rainspeed = random(2,20);
   if(_DEBUG_) { Serial.println("-----"); Serial.println("Rain starting: "); Serial.print(density, DEC); Serial.print(" "); Serial.println(rainspeed, DEC); }
-  int stopraining = 0;
+  uint8_t stopraining = 0;
   while(1) {
     if(millis() > (now+runtime)) { // get out of rain eventually.
       stopraining++;
     }
     // move everything down one row
-    for(int y = 0; y < ROWS; y++) {
-      for(int x = 0; x < COLS; x++) {
+    for(uint8_t y = 0; y < ROWS; y++) {
+      for(uint8_t x = 0; x < COLS; x++) {
 	if(world[x][y][0] > 0) { // if there's a value in the current frame, copy it to the next frame, 1 row down
 	  world[x][y+1][1] = world[x][y][0]; 
 	}
@@ -829,7 +829,7 @@ void Rain(unsigned long now, unsigned long runtime) {
       }
     }
     // fill in the now vacant top row with random lights
-    for(int x = 0; x < COLS; x++) {
+    for(uint8_t x = 0; x < COLS; x++) {
       if(stopraining < ROWS+1) {
 	if(random(100) > density) { 
 	  world[x][0][1] = random(1,7);
@@ -855,14 +855,14 @@ void Breathe(unsigned long now, unsigned long runtime) {
     if(millis() > (now+runtime)) {
       return;
     }
-    for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = 7; } }
+    for(uint8_t y=0; y < ROWS; y++) { for(uint8_t x=0; x < COLS; x++) { world[x][y][1] = 7; } }
     if(millis() > (now+runtime)) { return; }
     
     fade_to_next_frame(30);
     delay(300); 
     if(millis() > (now+runtime)) { return;  }
     
-    for(int y=0; y < ROWS; y++) { for(int x=0; x < COLS; x++) { world[x][y][1] = 0; } }
+    for(uint8_t y=0; y < ROWS; y++) { for(uint8_t x=0; x < COLS; x++) { world[x][y][1] = 0; } }
     
     fade_to_next_frame(30);
     if(millis() > (now+runtime)) { return; }
@@ -871,7 +871,7 @@ void Breathe(unsigned long now, unsigned long runtime) {
 }
 
 // Theory of operation: Bring world[x][y][0] towards world[x][y][1] and draw it.  When nothing changes, break out of the loop.
-void fade_to_next_frame(int speed) {
+void fade_to_next_frame(uint8_t speed) {
   char x,y, changes;
 
   while(1) {
