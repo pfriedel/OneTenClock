@@ -509,6 +509,18 @@ void Life() {
     if(( current_equals_next() == 1 ) and ( end_before_next_time == false)) {
       if(_DEBUG_) { Serial.print("Died due to still life at generation "); Serial.println(generation); }
       end_before_next_time = true;
+
+      // check to see if it died with an empty world or one with a static object.
+      byte living_cells=0;
+      for(uint8_t y=0; y<ROWS; y++) {
+	for(uint8_t x=0; x<COLS; x++) {
+	  if(world[x][y][1] > 0) { living_cells++; }
+	}
+      }
+      if(living_cells == 0) {
+	delay(500);
+	break;
+      }
     }
     
     // Death due to oscillator
