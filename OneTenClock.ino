@@ -160,14 +160,14 @@ void loop() {
     
     unsigned long now=millis();
     
-    switch(random(10)) {
+    switch(random(3)) {
     case 0:
       Logo(1000);
       break;
-    case 1 ... 3:
+    case 1:
       Rain(now,5000);
       break;
-    case 4 ... 9:
+    case 2:
       Life();
       break;
     }
@@ -263,27 +263,33 @@ void Logo(unsigned long runtime) {
   if(_DEBUG_) { Serial.println("-----"); Serial.println("Logo starting"); }
   LedSign::Clear();
   switch(random(2)) {
-  case 0: // major fruit company logo
+  case 0: // USAF logo.  Sort of.
     for(byte g=0; g<=7; g++) {
-      LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(0,7,g); LedSign::Set(0,8,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(1,7,g); LedSign::Set(1,8,g); LedSign::Set(1,9,g); LedSign::Set(2,3,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(2,7,g); LedSign::Set(2,8,g); LedSign::Set(2,9,g); LedSign::Set(2,10,g); LedSign::Set(3,3,g); LedSign::Set(3,4,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,7,g); LedSign::Set(3,8,g); LedSign::Set(3,9,g); LedSign::Set(3,10,g); LedSign::Set(4,1,g); LedSign::Set(4,2,g); LedSign::Set(4,4,g); LedSign::Set(4,5,g); LedSign::Set(4,6,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(5,0,g); LedSign::Set(5,1,g); LedSign::Set(5,3,g); LedSign::Set(5,4,g); LedSign::Set(5,5,g); LedSign::Set(5,6,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,0,g); LedSign::Set(6,3,g); LedSign::Set(6,4,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,7,g); LedSign::Set(6,8,g); LedSign::Set(6,9,g); LedSign::Set(6,10,g); LedSign::Set(7,3,g); LedSign::Set(7,4,g); LedSign::Set(7,7,g); LedSign::Set(7,8,g); LedSign::Set(7,9,g); LedSign::Set(8,4,g); LedSign::Set(8,7,g); LedSign::Set(8,8,g);
+      LedSign::Set(0,1,g); LedSign::Set(0,2,g); LedSign::Set(0,3,g); LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(1,0,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,9,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(4,10,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,9,g); LedSign::Set(7,4,g); LedSign::Set(7,5,g); LedSign::Set(7,6,g); LedSign::Set(8,0,g); LedSign::Set(8,3,g); LedSign::Set(8,4,g); LedSign::Set(8,5,g); LedSign::Set(8,6,g); LedSign::Set(9,1,g); LedSign::Set(9,2,g); LedSign::Set(9,3,g); LedSign::Set(9,4,g); LedSign::Set(9,5,g);
       delay(50);
     }
     delay(runtime);
     for(byte g=7; g>=1; g--) {
-      LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(0,7,g); LedSign::Set(0,8,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(1,7,g); LedSign::Set(1,8,g); LedSign::Set(1,9,g); LedSign::Set(2,3,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(2,7,g); LedSign::Set(2,8,g); LedSign::Set(2,9,g); LedSign::Set(2,10,g); LedSign::Set(3,3,g); LedSign::Set(3,4,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,7,g); LedSign::Set(3,8,g); LedSign::Set(3,9,g); LedSign::Set(3,10,g); LedSign::Set(4,1,g); LedSign::Set(4,2,g); LedSign::Set(4,4,g); LedSign::Set(4,5,g); LedSign::Set(4,6,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(5,0,g); LedSign::Set(5,1,g); LedSign::Set(5,3,g); LedSign::Set(5,4,g); LedSign::Set(5,5,g); LedSign::Set(5,6,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,0,g); LedSign::Set(6,3,g); LedSign::Set(6,4,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,7,g); LedSign::Set(6,8,g); LedSign::Set(6,9,g); LedSign::Set(6,10,g); LedSign::Set(7,3,g); LedSign::Set(7,4,g); LedSign::Set(7,7,g); LedSign::Set(7,8,g); LedSign::Set(7,9,g); LedSign::Set(8,4,g); LedSign::Set(8,7,g); LedSign::Set(8,8,g);
+      LedSign::Set(0,1,g); LedSign::Set(0,2,g); LedSign::Set(0,3,g); LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(1,0,g); LedSign::Set(1,3,g); LedSign::Set(1,4,g); LedSign::Set(1,5,g); LedSign::Set(1,6,g); LedSign::Set(2,4,g); LedSign::Set(2,5,g); LedSign::Set(2,6,g); LedSign::Set(3,5,g); LedSign::Set(3,6,g); LedSign::Set(3,9,g); LedSign::Set(4,7,g); LedSign::Set(4,8,g); LedSign::Set(4,9,g); LedSign::Set(4,10,g); LedSign::Set(5,7,g); LedSign::Set(5,8,g); LedSign::Set(5,9,g); LedSign::Set(5,10,g); LedSign::Set(6,5,g); LedSign::Set(6,6,g); LedSign::Set(6,9,g); LedSign::Set(7,4,g); LedSign::Set(7,5,g); LedSign::Set(7,6,g); LedSign::Set(8,0,g); LedSign::Set(8,3,g); LedSign::Set(8,4,g); LedSign::Set(8,5,g); LedSign::Set(8,6,g); LedSign::Set(9,1,g); LedSign::Set(9,2,g); LedSign::Set(9,3,g); LedSign::Set(9,4,g); LedSign::Set(9,5,g);
       delay(50);
     }
     LedSign::Clear();
     delay(200);
     break;
-  case 1: // a heart
+  case 1: // USAF
     for(byte g=0; g<=7; g++) {
-      LedSign::Set(0,3,g); LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(1,2,g); LedSign::Set(1,7,g); LedSign::Set(2,1,g); LedSign::Set(2,8,g); LedSign::Set(3,1,g); LedSign::Set(3,9,g); LedSign::Set(4,2,g); LedSign::Set(4,10,g); LedSign::Set(5,2,g); LedSign::Set(5,10,g); LedSign::Set(6,1,g); LedSign::Set(6,9,g); LedSign::Set(7,1,g); LedSign::Set(7,8,g); LedSign::Set(8,2,g); LedSign::Set(8,7,g); LedSign::Set(9,3,g); LedSign::Set(9,4,g); LedSign::Set(9,5,g); LedSign::Set(9,6,g);
+      Font_Draw('U', 0,0,g);
+      Font_Draw('S', 5,0,g);
+      Font_Draw('A', 0,6,g);
+      Font_Draw('F', 5,6,g);
       delay(50);
     }
     delay(runtime);
     for(byte g=7; g>=1; g--) {
-      LedSign::Set(0,3,g); LedSign::Set(0,4,g); LedSign::Set(0,5,g); LedSign::Set(0,6,g); LedSign::Set(1,2,g); LedSign::Set(1,7,g); LedSign::Set(2,1,g); LedSign::Set(2,8,g); LedSign::Set(3,1,g); LedSign::Set(3,9,g); LedSign::Set(4,2,g); LedSign::Set(4,10,g); LedSign::Set(5,2,g); LedSign::Set(5,10,g); LedSign::Set(6,1,g); LedSign::Set(6,9,g); LedSign::Set(7,1,g); LedSign::Set(7,8,g); LedSign::Set(8,2,g); LedSign::Set(8,7,g); LedSign::Set(9,3,g); LedSign::Set(9,4,g); LedSign::Set(9,5,g); LedSign::Set(9,6,g);
+      Font_Draw('U', 0,0,g);
+      Font_Draw('S', 5,0,g);
+      Font_Draw('A', 0,6,g);
+      Font_Draw('F', 5,6,g);
       delay(50);
     }
     LedSign::Clear();
@@ -685,6 +691,10 @@ void updateTimeBuffer() {
   RTC.readClock();
   minutes = RTC.getMinutes();
   hours   = RTC.getHours();
+
+  // On the one hand, I want to put something here to deal with garbage times.
+  // On the other hand, I want the device to be functional even if the battery
+  // is dead.
 
   // build the string containing formatted time;
   sprintf(timeBuffer, "%2d:%02d", hours, minutes);
