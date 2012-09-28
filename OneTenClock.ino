@@ -160,14 +160,11 @@ void loop() {
     
     unsigned long now=millis();
     
-    switch(random(3)) {
+    switch(random(4)) {
     case 0:
-      Logo(1000);
-      break;
-    case 1:
       Rain(now,5000);
       break;
-    case 2:
+    case 1 ... 3:
       Life();
       break;
     }
