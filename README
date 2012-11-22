@@ -1,5 +1,9 @@
-NOTE: If you follow the spreadsheet, the 5mm is different from the 3mm master
-branch.  Use the right branch or figure out your pin mapping on your own.
+NOTE: This is now a historical repository - active development moved to
+https://github.com/pfriedel/LifeClock - I wanted to shed some of the luggage
+when moving to a "retail" product.  The design described in this repo is
+available in a limited run of boards at https://tindie.com/shops/pfriedel/
+
+------------------------------------------------------------------------
 
 This code drives a 6x5 array of Charlieplexed LEDs using Jimmie Rodger's LoL
 Shield Charliplexing code.  The current target is a standalone board with an
