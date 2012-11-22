@@ -117,6 +117,10 @@ void setup() {
   RTC.readClock();
   randomSeed(RTC.getSeconds()); // is actually less random than it should be.  hrm.
   updateTimeBuffer();
+  
+  // start the oscillator if it isn't already started.
+  RTC.start();
+
 }
 
 void loop() {
@@ -154,7 +158,6 @@ void loop() {
     EESaveSettings();
   }
   else {
-    
     //clear the current world of whatever had been in it.
     for(uint8_t y = 0; y < ROWS; y++) { for(uint8_t x = 0; x < COLS; x++) { world[x][y][0] = 0; world[x][y][1] = 0; } }
     
@@ -187,37 +190,49 @@ void loop() {
     // And the additional delay seems to knock out the last one or two errored readings.
     delay(50);
     float ftemp = GetDS18B20Temp();
+    char temperature[5];
     int chk = DHT11.read(DHT11PIN);
     LedSign::SetBrightness(max_brightness);
-    
-    ftemp = (ftemp*1.8) + 32;
-    char temperature[5];
-    dtostrf(ftemp, -4, 1, temperature);
 
-    if(_DEBUG_) {
-      Serial.print(hours, DEC); Serial.print(":");  Serial.println(minutes, DEC);
-      Serial.print("Temp: "); Serial.println(temperature);
-    }      
-
-    if(chk == 0) {
-      int humidity = DHT11.humidity;
-
-      if(_DEBUG_) {
-	Serial.print("Humidity: "); Serial.println(humidity, DEC);
-      }
+    // if the temperature is within a human range, go ahead
+    if((ftemp < 50.00) && (ftemp > 2)) {
+      ftemp = (ftemp*1.8) + 32;
+      dtostrf(ftemp, -4, 1, temperature);
       
-      sprintf(tempnhum, "%s< %d;", temperature, humidity);
-      Banner(tempnhum, 100, random(6));
+      if(_DEBUG_) {
+	Serial.print(hours, DEC); Serial.print(":");  Serial.println(minutes, DEC);
+	Serial.print("Temp: "); Serial.println(temperature);
+      }      
+
+      if(chk == 0) {
+	int humidity = DHT11.humidity;
+	int dhttemp = DHT11.temperature;
+	
+	if(_DEBUG_) {
+	  Serial.print("RH: "); Serial.println(humidity, DEC);
+	  Serial.print("DHT Temp: "); Serial.println(dhttemp, DEC);
+	}
+	
+	sprintf(tempnhum, "%s< %d;", temperature, humidity);
+	Banner(tempnhum, 100, random(6));
+      }
+      else {
+	if(_DEBUG_) {
+	  Serial.print("RH: ");
+	  Serial.println("ERR"); 
+	  Serial.print("Chksum: "); Serial.println(chk);
+	}
+	
+	sprintf(tempnhum, "%s<", temperature);
+	Banner(tempnhum, 100, random(6));
+      }    
     }
     else {
       if(_DEBUG_) {
-	Serial.println("Humidity: ERR"); 
-	Serial.print("Chksum: "); Serial.println(chk);
+	Serial.print("Temp Error: ");
+	Serial.println(ftemp);
       }
-      
-      sprintf(tempnhum, "%s<", temperature);
-      Banner(tempnhum, 100, random(6));
-    }    
+    }
   }
 }
 
@@ -460,7 +475,7 @@ void Life() {
       updateTimeBuffer();
       if(_DEBUG_) {
 	Serial.print(hours, DEC); Serial.print(":");  Serial.print(minutes, DEC);
-	Serial.print(" at generation "); Serial.println(generation);
+	Serial.print(" @ gen "); Serial.println(generation);
       }
       DisplayTime(1000);
 
@@ -485,7 +500,8 @@ void Life() {
 	  Banner(tempnhum, 100, random(6));
 	}
 	else {
-	  Serial.println("Temp Error!");
+	  Serial.println("Temp Error: ");
+	  Serial.println(ftemp);
 	}
       }
       
